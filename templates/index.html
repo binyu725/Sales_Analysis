@@ -18,6 +18,35 @@
 <!--            stroke: #999;-->
 <!--        }-->
 
+        html, body {
+            margin: 0px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 40fr 30fr 30fr;
+            grid-template-rows: 50% 50%;
+            gap: 0px 0px;
+            grid-auto-flow: row;
+            align-content: stretch;
+            grid-template-areas:
+                "map timeseries timeseries"
+                "pcp top-5 growthrate";
+        }
+
+        .map { grid-area: map; }
+
+        .timeseries { grid-area: timeseries; }
+
+        .pcp { grid-area: pcp; }
+
+        .top-5 { grid-area: top-5; }
+
+        .growthrate { grid-area: growthrate; }
+
+
         .foreground path {
           fill: none;
           stroke: steelblue;
@@ -29,21 +58,26 @@
         .my_axis text {
             cursor: move;
         }
-
     </style>
 </head>
 <body>
-    <h1>
-        <br>SALES ANALYSIS<span>Final Project</span>
-    </h1>
+<!--    <h1>-->
+<!--        <br>SALES ANALYSIS<span>Final Project</span>-->
+<!--    </h1>-->
 
-<!--    <svg id="geomap" width="400" height="300"></svg>-->
-    <div id="graph1"></div><br>
-    <div id="graph2"></div><br>
-    <div id="graph3"></div><br>
-    <div id="graph4"></div><br>
-    <div id="graph5"></div><br>
-    <div id="graph6"></div><br>
+    <div class="container">
+        <div class="map" id="map"></div>
+        <div class="timeseries" id="timeseries"></div>
+        <div class="pcp" id="pcp"></div>
+        <div class="top-5" id="top-5"></div>
+        <div class="growthrate" id="growthrate"></div>
+    </div>
+
     <script src="static/index.js"></script>
+    <script src="static/Top_5.js"></script>
+    <script src="static/Geomap.js"></script>
+    <script src="static/Growthrate.js"></script>
+    <script src="static/Time_series.js"></script>
+    <script src="static/PCP.js"></script>
 </body>
 </html>

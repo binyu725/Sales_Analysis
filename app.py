@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import pandas as pd
 import numpy as np
+from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -37,11 +38,12 @@ def stackedBarchart():
     if request.method == 'POST':
         country = request.form['country_name']
         transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
-    transferred_data = transferred_data[["QUANTITYORDERED", "MONTH_ID", "YEAR_ID", "PRODUCTLINE"]]
-    transferred_data["MONTH_ID"] = transferred_data.MONTH_ID.map("{:02}".format)
-    transferred_data["time_period"] = transferred_data["YEAR_ID"].astype(str) + "-" + transferred_data[
-        "MONTH_ID"].astype(str)
-    transferred_data.drop(["MONTH_ID", "YEAR_ID"], axis=1)
+    transferred_data = transferred_data[["QUANTITYORDERED", "QTR_ID", "YEAR_ID", "PRODUCTLINE"]]
+    transferred_data['time_period'] = data['YEAR_ID'].map(str) + "q" + data['QTR_ID'].map(str)
+    # transferred_data["MONTH_ID"] = transferred_data.MONTH_ID.map("{:02}".format)
+    # transferred_data["time_period"] = transferred_data["YEAR_ID"].astype(str) + "-" + transferred_data[
+    #     "MONTH_ID"].astype(str)
+    transferred_data.drop(["QTR_ID", "YEAR_ID"], axis=1)
     transferred_data = transferred_data.groupby(["time_period", "PRODUCTLINE"]).sum()
     transferred_data.index.name = 'timeline'
     transferred_data.reset_index(inplace=True)
@@ -92,6 +94,16 @@ def pcp():
     data_values = transferred_data.to_dict('records')
     data_dimension = transferred_data.columns.values.tolist()
     transferred_data = {'dimensions': data_dimension, 'data_values': data_values}
+    return json.dumps(transferred_data)
+
+@app.route('/growthRate')
+def growthRate():
+    data['YEAR_MONTH'] = data['YEAR_ID'].map(str) + data['MONTH_ID'].map(str).map(lambda x: x.rjust(2, '0'))
+    df_first_purchase = data.groupby('CUSTOMERNAME').YEAR_MONTH.min().reset_index()
+    df_first_purchase.columns = ['CUSTOMERNAME', 'FirstPurchaseDate']
+
+    transferred_data = df_first_purchase.groupby(['FirstPurchaseDate'])['CUSTOMERNAME'].nunique().pct_change()
+    transferred_data = transferred_data.fillna(0)
     return json.dumps(transferred_data)
 
 
