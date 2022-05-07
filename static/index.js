@@ -14,6 +14,10 @@ function read_data(url) {
                 pca(JSON.parse(d));
             } else if (url == '/stackedAreaChart') {
                 stackedAreaChart(JSON.parse(d));
+            } else if (url == '/pcp') {
+                pcp(JSON.parse(d));
+            } else if (url == '/geomap') {
+                geomap(JSON.parse(d));
             }
         },
         error: function (d) {
@@ -23,62 +27,103 @@ function read_data(url) {
 }
 
 function dashboard() {
-    geomap();
-    read_data('/pca')
+    read_data('/geomap')
+//    read_data('/pca')
     read_data('/barchart');
     read_data('/stackedBarchart');
     read_data('/stackedAreaChart');
+    read_data('/pcp');
 }
 
-function geomap() {
-    var width = 600;
-    var height = 400;
+function geomap(transferred_data) {
+    var width = 1200;
+    var height = 800;
+
+    var transferred_data = transferred_data.data;
 
     svg_geomap = d3.select('body')
                     .append('svg')
                     .attr('width', width)
                     .attr('height', height);
 
-    var projection = d3.geoMercator().scale(95)
+    var projection = d3.geoMercator().scale(170)
         .translate([width / 2, height / 1.4]);
     var path = d3.geoPath(projection);
 
-    d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(data => {
-            var countries = topojson.feature(data, data.objects.countries);
+    var zoom = d3.zoom()
+      .scaleExtent([1, 8])
+      .on('zoom', zoomed);
+
+    var colorScale = d3.scaleThreshold()
+                        .domain([0, 50000, 100000, 200000, 400000, 800000, 1200000, 2000000])
+                        .range(d3.schemeReds[9]);
+
+    svg_geomap.call(zoom);
+
+    d3.json('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson').then(data => {
+            var countries = data;
+
             svg_geomap.append("g")
-            .selectAll("path")
-            .data(countries.features)
-            .enter()
-            .append("path")
-            .attr("d", path)
-            .attr("fill", "#66ccff")
-            .style("stroke", "transparent")
-            .attr("class", d => "country")
-            .style("opacity", 0.8)
-            .on("mouseover", (d, i) => {
-                d3.selectAll(".country")
-                    .transition()
-                    .duration(200)
-                    .style("opacity", a => a.properties.name == i.properties.name ? 0.8 : 0.5)
-                    .style("stroke", a => a.properties.name == i.properties.name ? "black" : "transparent")
-            })
-            .on("mouseleave", d => {
-                d3.selectAll(".country")
-                    .transition()
-                    .duration(200)
-                    .style("opacity", .8)
+                    .selectAll("path")
+                    .data(countries.features)
+                    .enter()
+                    .append("path")
+                    .attr("d", path)
+                    .attr("fill", d => {
+                        total = transferred_data.hasOwnProperty(d.properties.name) ? transferred_data[d.properties.name].SALES : 0;
+                        return colorScale(total);
+                    })
                     .style("stroke", "transparent")
-            });
-        });
+                    .attr("class", d => transferred_data.hasOwnProperty(d.properties.name) ? "country" : null)
+                    .style("opacity", 0.8)
+                    .on("mouseover", (d, i) => {
+                        d3.selectAll(".country")
+                            .transition()
+                            .duration(200)
+                            //.style("opacity", a => a.properties.name == i.properties.name ? 0.8 : 0.5)
+                            .style("stroke", a => a.properties.name == i.properties.name ? "black" : "transparent")
+                    })
+                    .on("mouseleave", d => {
+                        d3.selectAll(".country")
+                            .transition()
+                            .duration(200)
+                            .style("opacity", .8)
+                            .style("stroke", "transparent")
+                    })
+                    .on("click", (e, d) => {
+                        if (transferred_data.hasOwnProperty(d.properties.name)) {
+                            $.ajax({
+                                url: "/stackedBarchart",
+                                type: 'POST',
+                                data: {
+                                    country_name: d.properties.name
+                                },
+                                success: function (d) {
+                                    stackedBarchart(JSON.parse(d));
+                                },
+                                error: function (d) {
+                                    console.log(d);
+                                }
+                            });
+                        }
+                    });
+    });
+
+    function zoomed() {
+        svg_geomap.selectAll('path')
+        .attr('transform', d3.zoomTransform(this));
+    }
 }
 
-function barchart(data, variable="COUNTRY") {
-    var variable_count = d3.rollups(data.data, v => d3.sum(v, d => d.SALES), d => d[variable])
-                    .sort(([, a], [, b]) => d3.descending(a, b))
+function barchart(transferred_data, variable="CUSTOMERNAME") {
+//    var variable_count = d3.rollups(data.data, v => d3.sum(v, d => d.SALES), d => d[variable])
+//                    .sort(([, a], [, b]) => d3.descending(a, b))
 
-    var margin = {top: 100, right: 30, bottom: 50, left: 115},
-        width = 500 - margin.left - margin.right,
-        height = 800 - margin.top - margin.bottom;
+    var data = transferred_data.data;
+
+    var margin = {top: 100, right: 30, bottom: 50, left: 200},
+        width = 650 - margin.left - margin.right,
+        height = 350 - margin.top - margin.bottom;
 
     svg_barchart = d3.select("#graph2")
                 .append("svg")
@@ -88,7 +133,7 @@ function barchart(data, variable="COUNTRY") {
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     var x = d3.scaleLinear()
-            .domain([0, d3.max(variable_count.map(d => d[1]))])
+            .domain([0, d3.max(data.map(d => d.SALES))])
             .range([0, width]);
 
     svg_barchart.append("g")
@@ -98,7 +143,7 @@ function barchart(data, variable="COUNTRY") {
 
     var y = d3.scaleBand()
             .range([0, height])
-            .domain(variable_count.map(d => d[0]))
+            .domain(data.map(d => d.CUSTOMERNAME))
             .padding(0.1);
 
     svg_barchart.append("g")
@@ -106,19 +151,15 @@ function barchart(data, variable="COUNTRY") {
         .style("font", "14px times");
 
     svg_barchart.selectAll()
-        .data(variable_count)
+        .data(data)
         .join("rect")
         .attr("x", 1)
-        .attr("y", d => y(d[0]))
-        .attr("width", d => x(d[1]))
+        .attr("y", d => y(d.CUSTOMERNAME))
+        .attr("width", d => x(d.SALES))
         .attr("height", y.bandwidth)
         .attr("fill", "#66ccff")
         .on("click", function(d, e) {
-            svg_time.selectAll('rect')
-                    .filter(function(f) {
-                        console.log(f[0]);
-                        return f[0] < 3000;
-                    })
+
         });
 
     svg_barchart.append("text")
@@ -155,7 +196,6 @@ function stackedBarchart(data) {
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-
     var subgroups = Object.keys(data[0]).slice(1)
     var groups = data.map(d => d.time_period)
 
@@ -170,9 +210,20 @@ function stackedBarchart(data) {
 //        .tickSizeOuter(0)
         .style("font", "14px times");
 
+    var maxY = 0;
+    data.forEach(d => {
+        var sum = 0;
+        Object.keys(d).forEach(key => {
+            if (key != "time_period") {
+                sum += d[key];
+            }
+        })
+        maxY = maxY > sum ? maxY : sum;
+    });
+
     var y = d3.scaleLinear()
             .range([height, 0])
-            .domain([0, 11000]);
+            .domain([0, maxY]);
 
     svg_time.append("g")
         .call(d3.axisLeft(y))
@@ -195,24 +246,33 @@ function stackedBarchart(data) {
         .selectAll("rect")
         .data(d => d)
         .join("rect")
+        .attr("class", d => "time time" + d.data.time_period)
         .attr("x", d => x(d.data.time_period))
-        .attr("y", d => y(d[1]))
-        .attr("height", d => y(d[0]) - y(d[1]))
+        .attr("y", d => y(d[0]))//y(d[1]))
+        .attr("height", d => height-y(0))//y(d[0]) - y(d[1]))
         .attr("width", x.bandwidth())
         .attr("stroke", "gray")
         .on("mouseover", function(e, d) {
-            var subGroupName = d3.select(this.parentNode).datum().key
-            d3.selectAll(".myRect").style("opacity", 0.2);
-            d3.selectAll("." + subGroupName.split(" ")[0]).style("opacity", 1);
+            var subGroupName = d3.select(this.parentNode).datum().key;
+            //d3.selectAll(".myRect").style("opacity", 0.2);
+            d3.selectAll(".time").style("opacity", 0.2);
+            d3.selectAll(".time" + d.data.time_period).style("opacity", 1);//subGroupName.split(" ")[0]).style("opacity", 1);
         })
         .on("mouseleave", function(e, d) {
-            d3.selectAll(".myRect")
+            d3.selectAll(".time")//myRect")
             .style("opacity", 1);
         });
+
+        svg_time.selectAll("rect")
+                .transition()
+                .duration(500)
+                .attr("y", d => y(d[1]))
+                .attr("height", d => y(d[0]) - y(d[1]))
+                .delay((d, i) => i*15);
 }
 
 function stackedAreaChart(data) {
-    console.log(data);
+//    console.log(data);
 
     data.forEach(function(d) {
         d.date = d3.timeParse("%Y-%m-%d")(d.date);
@@ -416,6 +476,178 @@ function pca(transferred_data) {
         .attr("cy", d => y(d[1]))
         .attr("r", 2)
         .attr("fill", (d, i) => color[label[i]]);
+}
+
+function pcp(data) {
+    var margin = {top: 70, right: 40, bottom: 10, left: 0},
+        width = 1600 - margin.left - margin.right,
+        height = 600 - margin.top - margin.bottom;
+
+    var svg = d3.select("#graph5")
+                .append("svg")
+                  .attr("width", width + margin.left + margin.right)
+                  .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                  .attr("transform",
+                        "translate(" + margin.left + "," + margin.top + ")");
+
+    var dimensions = data.dimensions;
+    var data_values = data.data_values;
+    var label = data.label;
+    var dragging = {}
+    var foreground, background;
+
+    var y = {};
+    for (i in dimensions) {
+        var name = dimensions[i];
+        if (typeof data_values[0][name] === "number") {
+            y[name] = d3.scaleLinear()
+                .domain(d3.extent(data_values, d => +d[name]))
+                .range([height, 0]);
+        } else {
+            y[name] = d3.scaleBand()
+                .domain(data_values.map(d => d[name]))
+                .range([height, 0]);
+        }
+        y[name].brush = d3.brushY()
+                        .extent([[-10, y[name].range()[1]], [10, y[name].range()[0]]])
+                        .on("brush", brush)
+                        .on("start", brushstart)
+                        .on("end", brush);
+    }
+
+    x = d3.scalePoint()
+        .range([0, width])
+        .padding(1)
+        .domain(dimensions);
+
+    function path(d) {
+        return d3.line()(dimensions.map(p => [position(p), typeof d[p] === "string" || typeof d[p] === "boolean" ? y[p](d[p]) + y[p].bandwidth()/2 : y[p](d[p])]));
+    }
+
+//    var lines = svg.selectAll("myPath")
+//        .data(data_values)
+//        .enter().append("path")
+//        .attr("d", path)
+//        .style("fill", "None")
+//        .style("stroke", (d, i) => color[label[i]])
+//        .style("opacity", 0.5);
+
+    foreground = svg.append("g")
+                    .attr("class", "foreground")
+                    .selectAll("myPath")
+                    .data(data_values)
+                    .enter().append("path")
+                    .attr("d", path);
+//                    .style("fill", "None")
+//                    .style("stroke", "#66ccff")
+//                    .style("opacity", 0.5);
+
+    var drag = d3.drag()
+                .subject(function(d) { return {x: x(d)};})
+                .on("start", function(e, d) {
+                    dragging[d] = x(d);
+                })
+                .on("drag", function(e, d) {
+                    dragging[d] = Math.min(width, Math.max(0, e.x));
+                    foreground.attr("d", path);
+                    dimensions.sort((a, b) => position(a) - position(b));
+                    x.domain(dimensions);
+                    g.attr("transform", d => "translate(" + position(d) + ")");
+                })
+                .on("end", function(e, d) {
+                    delete dragging[d];
+                    transition(d3.select(this)).attr("transform", "translate(" + x(d) + ")");
+                    transition(foreground).attr("d", path);
+                })
+
+    var g = svg.selectAll("my_axis")
+        .data(dimensions).enter()
+        .append("g")
+        .attr("transform", d => "translate(" + x(d) + ")")
+        .attr("name", d => d)
+        .call(drag);
+
+    g.append("g")
+        .each(function(d) { d3.select(this).call(d3.axisLeft().scale(y[d]));})
+        .append("text")
+        .style("text-anchor", "middle")
+        .style("font", "13px times")
+        .attr("y", -9)
+        .text(d => d)
+        .style("fill", "black");
+
+    g.append("g")
+        .attr("class", "brush")
+        .each(function(d) {
+            d3.select(this)
+                .call(y[d].brush)
+        })
+        .selectAll("rect")
+        .attr("x", -8)
+        .attr("width", 16);
+
+    function position(d) {
+        var v = dragging[d];
+        return v == null ? x(d) : v;
+    }
+
+    function transition(g) {
+        return g.transition().duration(500);
+    }
+
+    function brushstart(event) {
+        event.sourceEvent.stopPropagation();
+    }
+
+    function brush() {
+        var actives = [];
+        svg.selectAll(".brush")
+            .filter(function(d) {
+                return d3.brushSelection(this);
+            })
+            .each(function(d) {
+                actives.push({
+                    dimension: d,
+                    extent: d3.brushSelection(this)
+                });
+            });
+
+        foreground.classed("fade", function(d,i) {
+            return !actives.every(function(active) {
+                var dim = active.dimension;
+                var position = typeof data_values[0][dim] === "string" ? y[dim](d[dim]) + y[dim].bandwidth()/2 : y[dim](d[dim]);
+                return active.extent[0] <= position && position <= active.extent[1];
+            });
+        });
+    }
+
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", -40)
+        .attr("text-anchor", "middle")
+        .style("font-size", "40px")
+        .text("Parallel Coordinates Plot")
+
+//    svg.selectAll("dots")
+//        .data(color)
+//        .enter()
+//        .append("circle")
+//        .attr("cx", width - 40)
+//        .attr("cy", function(d,i){ return i*25+40})
+//        .attr("r", 7)
+//        .style("fill", d => d)
+//
+//    svg.selectAll("labels")
+//        .data(color)
+//        .enter()
+//        .append("text")
+//        .attr("x", width - 20)
+//        .attr("y", function(d,i){ return i*25+40})
+//        .style("fill", d => d)
+//        .text((d, i) => "cluster " + (i + 1))
+//        .attr("text-anchor", "left")
+//        .style("alignment-baseline", "middle")
 }
 
 var svg_geomap, svg_barchart, svg_time, svg_pca;

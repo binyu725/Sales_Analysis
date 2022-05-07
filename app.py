@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 def process_data():
     data = pd.read_csv("sales_data.csv")
-    data = data.drop(['POSTALCODE', 'STATE', 'ORDERNUMBER', 'CUSTOMERNAME', 'PHONE', 'ADDRESSLINE1', 'ADDRESSLINE2', 'CONTACTLASTNAME', 'CONTACTFIRSTNAME'], axis=1)
+    data = data.drop(['POSTALCODE', 'STATE', 'ORDERNUMBER', 'PHONE', 'ADDRESSLINE1', 'ADDRESSLINE2', 'CONTACTLASTNAME', 'CONTACTFIRSTNAME'], axis=1)
     return data
 
 @app.route('/')
@@ -19,12 +19,25 @@ def index():
 
 @app.route('/barchart')
 def barchart():
-    transferred_data = {'data': data.to_dict('records')}
+    # transferred_data = {'data': data.to_dict('records')}
+
+    transferred_data = data[["CUSTOMERNAME", "SALES"]].groupby(by=["CUSTOMERNAME"]).sum().sort_values(by='SALES', ascending=False).head(10)
+    transferred_data.reset_index(inplace=True)
+    transferred_data = {'data': transferred_data.to_dict('records')}
     return json.dumps(transferred_data)
 
-@app.route('/stackedBarchart')
+@app.route('/geomap')
+def geomap():
+    transferred_data = {'data': data[["COUNTRY", "SALES"]].groupby(by=["COUNTRY"]).sum().to_dict('index')}
+    return json.dumps(transferred_data)
+
+@app.route('/stackedBarchart', methods=['GET', 'POST'])
 def stackedBarchart():
-    transferred_data = data[["QUANTITYORDERED", "MONTH_ID", "YEAR_ID", "PRODUCTLINE"]]
+    transferred_data = data.copy()
+    if request.method == 'POST':
+        country = request.form['country_name']
+        transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
+    transferred_data = transferred_data[["QUANTITYORDERED", "MONTH_ID", "YEAR_ID", "PRODUCTLINE"]]
     transferred_data["MONTH_ID"] = transferred_data.MONTH_ID.map("{:02}".format)
     transferred_data["time_period"] = transferred_data["YEAR_ID"].astype(str) + "-" + transferred_data[
         "MONTH_ID"].astype(str)
@@ -51,9 +64,7 @@ def stackedAreaChart():
     transferred_data.reset_index(inplace=True)
     transferred_data["date"] = pd.to_datetime(transferred_data.date, format='%m-%d-%Y', infer_datetime_format=True).astype(str)
     transferred_data = transferred_data.sort_values(by=['date'], ascending=True)
-    print(transferred_data)
     transferred_data.loc[:, transferred_data.columns != 'date'] = transferred_data.loc[:, transferred_data.columns != 'date'].cumsum()
-    print(transferred_data)
     return json.dumps(transferred_data.to_dict('records'))
 
 @app.route('/pca')
@@ -74,6 +85,14 @@ def pca():
     # plt.show()
 
     return json.dumps({'data': projection.tolist(), 'label': kmeans_pca.labels_.tolist()})
+
+@app.route('/pcp')
+def pcp():
+    transferred_data = data[["QUANTITYORDERED", "PRICEEACH", "SALES", "STATUS", "PRODUCTLINE", "COUNTRY", "DEALSIZE", "QTR_ID"]]
+    data_values = transferred_data.to_dict('records')
+    data_dimension = transferred_data.columns.values.tolist()
+    transferred_data = {'dimensions': data_dimension, 'data_values': data_values}
+    return json.dumps(transferred_data)
 
 
 if __name__ == '__main__':
