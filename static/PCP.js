@@ -2,7 +2,7 @@ function pcp(data) {
     var margin = {top: 20, right: 30, bottom: 0, left: 0};
 //        width = 1600 - margin.left - margin.right,
 //        height = 600 - margin.top - margin.bottom;
-    var width = window.innerWidth * .38;
+    var width = window.innerWidth * .4;
     var height = window.innerHeight * .45;
 
     var svg = d3.select("#pcp")

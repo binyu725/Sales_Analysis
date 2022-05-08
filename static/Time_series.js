@@ -2,7 +2,7 @@ function stackedBarchart(data) {
     var margin = {top: 10, right: 0, bottom: 20, left: 50};
 //        width = 600 - margin.left - margin.right,
 //        height = 300 - margin.top - margin.bottom;
-    var width = window.innerWidth * .58;
+    var width = window.innerWidth * .6;
     var height = window.innerHeight * .45;
 
     svg_time = d3.select("#timeseries")
@@ -97,8 +97,8 @@ function stackedAreaChart(data) {
     const margin = {top: 10, right: 30, bottom: 20, left: 50};
 //          width = 600 - margin.left - margin.right,
 //          height = 300 - margin.top - margin.bottom;
-    var width = window.innerWidth * .35;
-    var height = window.innerHeight * .5;
+    var width = window.innerWidth * .58;
+    var height = window.innerHeight * .45;
 
     // append the svg object to the body of the page
     const svg = d3.select("#timeseries")

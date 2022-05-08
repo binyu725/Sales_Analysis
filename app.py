@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request
 import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -18,11 +17,13 @@ def process_data():
 def index():
     return render_template("index.html")
 
-@app.route('/barchart')
+@app.route('/barchart', methods=['GET', 'POST'])
 def barchart():
-    # transferred_data = {'data': data.to_dict('records')}
-
-    transferred_data = data[["CUSTOMERNAME", "SALES"]].groupby(by=["CUSTOMERNAME"]).sum().sort_values(by='SALES', ascending=False).head(10)
+    transferred_data = data.copy()
+    if request.method == 'POST':
+        country = request.form['country_name']
+        transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
+    transferred_data = transferred_data[["CUSTOMERNAME", "SALES"]].groupby(by=["CUSTOMERNAME"]).sum().sort_values(by='SALES', ascending=False).head(10)
     transferred_data.reset_index(inplace=True)
     transferred_data = {'data': transferred_data.to_dict('records')}
     return json.dumps(transferred_data)
@@ -69,25 +70,6 @@ def stackedAreaChart():
     transferred_data.loc[:, transferred_data.columns != 'date'] = transferred_data.loc[:, transferred_data.columns != 'date'].cumsum()
     return json.dumps(transferred_data.to_dict('records'))
 
-@app.route('/pca')
-def pca():
-    # transferred_data = data.copy()
-    # transferred_data = transferred_data.drop(["STATUS", "ORDERDATE", "PRODUCTLINE", "PRODUCTCODE", "CITY", "COUNTRY", "TERRITORY", "DEALSIZE"], axis=1)
-
-    transferred_data = data.select_dtypes(['number'])
-
-    transferred_data = StandardScaler().fit_transform(transferred_data)
-
-    pca = PCA(n_components=3)
-    projection = pca.fit_transform(transferred_data)
-
-    kmeans_pca = KMeans(n_clusters=4).fit(projection)
-
-    # sns.scatterplot(df_segm_pca_kmeans["SALES"], df_segm_pca_kmeans["QUANTITYORDERED"], hue=df_segm_pca_kmeans["segment kmeans pca"], palette=['g', 'r', 'c', 'm'])
-    # plt.show()
-
-    return json.dumps({'data': projection.tolist(), 'label': kmeans_pca.labels_.tolist()})
-
 @app.route('/pcp')
 def pcp():
     transferred_data = data[["QUANTITYORDERED", "PRICEEACH", "SALES", "STATUS", "PRODUCTLINE", "COUNTRY", "DEALSIZE", "QTR_ID"]]
@@ -96,15 +78,19 @@ def pcp():
     transferred_data = {'dimensions': data_dimension, 'data_values': data_values}
     return json.dumps(transferred_data)
 
-@app.route('/growthRate')
+@app.route('/growthRate', methods=['GET', 'POST'])
 def growthRate():
-    data['YEAR_MONTH'] = data['YEAR_ID'].map(str) + data['MONTH_ID'].map(str).map(lambda x: x.rjust(2, '0'))
-    df_first_purchase = data.groupby('CUSTOMERNAME').YEAR_MONTH.min().reset_index()
-    df_first_purchase.columns = ['CUSTOMERNAME', 'FirstPurchaseDate']
-
-    transferred_data = df_first_purchase.groupby(['FirstPurchaseDate'])['CUSTOMERNAME'].nunique().pct_change()
+    transferred_data = data.copy()
+    if request.method == 'POST':
+        country = request.form['country_name']
+        transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
+    transferred_data['YEAR_MONTH'] = transferred_data['YEAR_ID'].map(str) + transferred_data['MONTH_ID'].map(str).map(lambda x: x.rjust(2, '0'))
+    transferred_data = transferred_data.groupby('CUSTOMERNAME').YEAR_MONTH.min().reset_index()
+    transferred_data.columns = ['CUSTOMERNAME', 'FirstPurchaseDate']
+    transferred_data = transferred_data.groupby(['FirstPurchaseDate'])['CUSTOMERNAME'].nunique().pct_change()
     transferred_data = transferred_data.fillna(0)
-    return json.dumps(transferred_data)
+    transferred_data["200301"] = 1
+    return json.dumps(transferred_data.to_dict())
 
 
 if __name__ == '__main__':

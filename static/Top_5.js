@@ -7,7 +7,7 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
     var margin = {top: 0, right: 30, bottom: 30, left: 50};
 //        width = 650 - margin.left - margin.right,
 //        height = 350 - margin.top - margin.bottom;
-    var width = window.innerWidth * .28;
+    var width = window.innerWidth * .2;
     var height = window.innerHeight * .45;
 
 

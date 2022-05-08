@@ -1,5 +1,5 @@
 function geomap(transferred_data) {
-    var width = window.innerWidth * .38;
+    var width = window.innerWidth * .4;
     var height = window.innerHeight * .5;
 
     var transferred_data = transferred_data.data;
@@ -63,6 +63,32 @@ function geomap(transferred_data) {
                                 },
                                 success: function (d) {
                                     stackedBarchart(JSON.parse(d));
+                                },
+                                error: function (d) {
+                                    console.log(d);
+                                }
+                            });
+                            $.ajax({
+                                url: "/barchart",
+                                type: 'POST',
+                                data: {
+                                    country_name: d.properties.name
+                                },
+                                success: function (d) {
+                                    barchart(JSON.parse(d));
+                                },
+                                error: function (d) {
+                                    console.log(d);
+                                }
+                            });
+                            $.ajax({
+                                url: "/growthRate",
+                                type: 'POST',
+                                data: {
+                                    country_name: d.properties.name
+                                },
+                                success: function (d) {
+                                    growthRate(JSON.parse(d));
                                 },
                                 error: function (d) {
                                     console.log(d);
