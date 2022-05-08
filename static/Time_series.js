@@ -1,8 +1,10 @@
 function stackedBarchart(data) {
+    d3.select("#timeseries").select("svg").remove();
+
     var margin = {top: 10, right: 0, bottom: 20, left: 50};
 //        width = 600 - margin.left - margin.right,
 //        height = 300 - margin.top - margin.bottom;
-    var width = window.innerWidth * .6;
+    var width = window.innerWidth * .65;
     var height = window.innerHeight * .45;
 
     svg_time = d3.select("#timeseries")
@@ -77,6 +79,21 @@ function stackedBarchart(data) {
         .on("mouseleave", function(e, d) {
             d3.selectAll(".time")//myRect")
             .style("opacity", 1);
+        })
+        .on("click", function(e, d) {
+            $.ajax({
+                url: "/barchart",
+                type: 'POST',
+                data: {
+                    time_period: d.data.time_period
+                },
+                success: function (f) {
+                    barchart(JSON.parse(f));
+                },
+                error: function (f) {
+                    console.log(f);
+                }
+            });
         });
 
         svg_time.selectAll("rect")

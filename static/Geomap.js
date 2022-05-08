@@ -1,5 +1,7 @@
 function geomap(transferred_data) {
-    var width = window.innerWidth * .4;
+    d3.select("#map").select("svg").remove();
+
+    var width = window.innerWidth * .35;
     var height = window.innerHeight * .5;
 
     var transferred_data = transferred_data.data;
@@ -23,79 +25,152 @@ function geomap(transferred_data) {
 
     svg_geomap.call(zoom);
 
-    d3.json('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson').then(data => {
-            var countries = data;
+    const tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
 
-            svg_geomap.append("g")
-                    .selectAll("path")
-                    .data(countries.features)
-                    .enter()
-                    .append("path")
-                    .attr("d", path)
-                    .attr("fill", d => {
-                        total = transferred_data.hasOwnProperty(d.properties.name) ? transferred_data[d.properties.name].SALES : 0;
-                        return colorScale(total);
-                    })
-                    .style("stroke", "transparent")
-                    .attr("class", d => transferred_data.hasOwnProperty(d.properties.name) ? "country" : null)
-                    .style("opacity", 0.8)
-                    .on("mouseover", (d, i) => {
-                        d3.selectAll(".country")
+    d3.json('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson').then(data => {
+        var countries = data;
+
+        svg_geomap.append("g")
+                .selectAll("path")
+                .data(countries.features)
+                .enter()
+                .append("path")
+                .attr("d", path)
+                .attr("fill", d => {
+                    total = transferred_data.hasOwnProperty(d.properties.name) ? transferred_data[d.properties.name].SALES : 0;
+                    return colorScale(total);
+                })
+                .style("stroke", "transparent")
+                .attr("class", d => transferred_data.hasOwnProperty(d.properties.name) ? "country" : null)
+                .style("opacity", 0.8)
+                .on("mouseover", (d, i) => {
+                    var transferred_data_var = transferred_data
+                    const [x_point, y_point] = d3.pointer(d);
+
+                    d3.selectAll(".country")
+                        .transition()
+                        .duration(200)
+                        //.style("opacity", a => a.properties.name == i.properties.name ? 0.8 : 0.5)
+                        .style("stroke", a => a.properties.name == i.properties.name ? "black" : "transparent")
+
+                    if (i.properties.name in transferred_data_var) {
+                        tooltip.style("left", (x_point) + "px")
+                            .style("top", (y_point) + "px")
                             .transition()
-                            .duration(200)
-                            //.style("opacity", a => a.properties.name == i.properties.name ? 0.8 : 0.5)
-                            .style("stroke", a => a.properties.name == i.properties.name ? "black" : "transparent")
-                    })
-                    .on("mouseleave", d => {
-                        d3.selectAll(".country")
-                            .transition()
-                            .duration(200)
-                            .style("opacity", .8)
-                            .style("stroke", "transparent")
-                    })
-                    .on("click", (e, d) => {
-                        if (transferred_data.hasOwnProperty(d.properties.name)) {
-                            $.ajax({
-                                url: "/stackedBarchart",
-                                type: 'POST',
-                                data: {
-                                    country_name: d.properties.name
-                                },
-                                success: function (d) {
-                                    stackedBarchart(JSON.parse(d));
-                                },
-                                error: function (d) {
-                                    console.log(d);
-                                }
-                            });
-                            $.ajax({
-                                url: "/barchart",
-                                type: 'POST',
-                                data: {
-                                    country_name: d.properties.name
-                                },
-                                success: function (d) {
-                                    barchart(JSON.parse(d));
-                                },
-                                error: function (d) {
-                                    console.log(d);
-                                }
-                            });
-                            $.ajax({
-                                url: "/growthRate",
-                                type: 'POST',
-                                data: {
-                                    country_name: d.properties.name
-                                },
-                                success: function (d) {
-                                    growthRate(JSON.parse(d));
-                                },
-                                error: function (d) {
-                                    console.log(d);
-                                }
-                            });
-                        }
-                    });
+                            .duration(400)
+                            .style("opacity", 1)
+                            .text(i.properties.name + ": " + transferred_data_var[i.properties.name].SALES);
+                    }
+                })
+                .on("mousemove", (d, i) => {
+                    const [x_point, y_point] = d3.pointer(d);
+                    tooltip.style("left", (x_point) + "px")
+                        .style("top", (y_point) + "px")
+                })
+                .on("mouseleave", d => {
+                    d3.selectAll(".country")
+                        .transition()
+                        .duration(200)
+                        .style("opacity", .8)
+                        .style("stroke", "transparent")
+                    tooltip.transition().duration(300)
+                        .style("opacity", 0);
+                })
+                .on("click", (e, d) => {
+                    if (transferred_data.hasOwnProperty(d.properties.name)) {
+                        $.ajax({
+                            url: "/stackedBarchart",
+                            type: 'POST',
+                            data: {
+                                country_name: d.properties.name
+                            },
+                            success: function (d) {
+                                stackedBarchart(JSON.parse(d));
+                            },
+                            error: function (d) {
+                                console.log(d);
+                            }
+                        });
+                        $.ajax({
+                            url: "/barchart",
+                            type: 'POST',
+                            data: {
+                                country_name: d.properties.name
+                            },
+                            success: function (d) {
+                                barchart(JSON.parse(d));
+                            },
+                            error: function (d) {
+                                console.log(d);
+                            }
+                        });
+                        $.ajax({
+                            url: "/growthRate",
+                            type: 'POST',
+                            data: {
+                                country_name: d.properties.name
+                            },
+                            success: function (d) {
+                                growthRate(JSON.parse(d));
+                            },
+                            error: function (d) {
+                                console.log(d);
+                            }
+                        });
+                    }
+                });
+
+        const x = d3.scaleLinear()
+            .domain([2.6, 75.1])
+            .rangeRound([600, 860]);
+
+        const legend = svg_geomap.append("g")
+            .attr("id", "legend");
+
+        const legend_entry = legend.selectAll("g.legend")
+            .data(colorScale.range().map(function (d) {
+                d = colorScale.invertExtent(d);
+                if (d[0] == null) d[0] = x.domain()[0];
+                if (d[1] == null) d[1] = x.domain()[1];
+                return d;
+            }))
+            .enter().append("g")
+            .attr("class", "legend_entry");
+
+        const legend_square_size = 10;
+
+
+        legend_entry.append("rect")
+            .attr("x", 25)
+            .attr("y", function (d, i) {
+                return height - (i * legend_square_size) - 2 * legend_square_size;
+            })
+            .attr("width", legend_square_size)
+            .attr("height", legend_square_size)
+            .style("fill", function (d) {
+                return colorScale(d[0]);
+            })
+            .style("opacity", 0.8);
+
+        legend_entry.append("text")
+            .attr("x", 40)
+            .attr("y", function (d, i) {
+                return height - (i * legend_square_size) - legend_square_size - 2;
+            })
+            .text(function (d, i) {
+                if (i === 0) return "< " + d[1] / 1000000 + "M";
+                if (d[1] < d[0]) return d[0] / 1000000 + "M +";
+                return d[0] / 1000000 + "M - " + d[1] / 1000000 + "M";
+            })
+            .style("font-size", "10px");
+
+        legend.append("text")
+            .attr("x", 25)
+            .attr("y", 310)
+            .text("Sales (Million)")
+            .style("font-size", "10px");
     });
 
     function zoomed() {

@@ -11,6 +11,7 @@ app = Flask(__name__)
 def process_data():
     data = pd.read_csv("sales_data.csv")
     data = data.drop(['POSTALCODE', 'STATE', 'ORDERNUMBER', 'PHONE', 'ADDRESSLINE1', 'ADDRESSLINE2', 'CONTACTLASTNAME', 'CONTACTFIRSTNAME'], axis=1)
+    data['time_period'] = data['YEAR_ID'].map(str) + "q" + data['QTR_ID'].map(str)
     return data
 
 @app.route('/')
@@ -21,15 +22,27 @@ def index():
 def barchart():
     transferred_data = data.copy()
     if request.method == 'POST':
-        country = request.form['country_name']
-        transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
+        if "country_name" in request.form:
+            country = request.form['country_name']
+            transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
+        elif "time_period" in request.form:
+            time_period = request.form['time_period']
+            transferred_data = transferred_data.loc[transferred_data['time_period'] == time_period]
     transferred_data = transferred_data[["CUSTOMERNAME", "SALES"]].groupby(by=["CUSTOMERNAME"]).sum().sort_values(by='SALES', ascending=False).head(10)
     transferred_data.reset_index(inplace=True)
     transferred_data = {'data': transferred_data.to_dict('records')}
     return json.dumps(transferred_data)
 
-@app.route('/geomap')
+@app.route('/geomap', methods=['GET', 'POST'])
 def geomap():
+    # transferred_data = data.copy()
+    # if request.method == 'POST':
+    #     if "country_name" in request.form:
+    #         country = request.form['country_name']
+    #         transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
+    #     elif "customer_name" in request.form:
+    #         customer = request.form['customer_name']
+    #         transferred_data = transferred_data.loc[transferred_data['CUSTOMERNAME'] == customer]
     transferred_data = {'data': data[["COUNTRY", "SALES"]].groupby(by=["COUNTRY"]).sum().to_dict('index')}
     return json.dumps(transferred_data)
 
@@ -37,14 +50,16 @@ def geomap():
 def stackedBarchart():
     transferred_data = data.copy()
     if request.method == 'POST':
-        country = request.form['country_name']
-        transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
-    transferred_data = transferred_data[["QUANTITYORDERED", "QTR_ID", "YEAR_ID", "PRODUCTLINE"]]
-    transferred_data['time_period'] = data['YEAR_ID'].map(str) + "q" + data['QTR_ID'].map(str)
+        if "country_name" in request.form:
+            country = request.form['country_name']
+            transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
+        elif "customer_name" in request.form:
+            customer = request.form['customer_name']
+            transferred_data = transferred_data.loc[transferred_data['CUSTOMERNAME'] == customer]
+    transferred_data = transferred_data[["time_period", "QUANTITYORDERED", "PRODUCTLINE"]]
     # transferred_data["MONTH_ID"] = transferred_data.MONTH_ID.map("{:02}".format)
     # transferred_data["time_period"] = transferred_data["YEAR_ID"].astype(str) + "-" + transferred_data[
     #     "MONTH_ID"].astype(str)
-    transferred_data.drop(["QTR_ID", "YEAR_ID"], axis=1)
     transferred_data = transferred_data.groupby(["time_period", "PRODUCTLINE"]).sum()
     transferred_data.index.name = 'timeline'
     transferred_data.reset_index(inplace=True)
@@ -72,7 +87,7 @@ def stackedAreaChart():
 
 @app.route('/pcp')
 def pcp():
-    transferred_data = data[["QUANTITYORDERED", "PRICEEACH", "SALES", "STATUS", "PRODUCTLINE", "COUNTRY", "DEALSIZE", "QTR_ID"]]
+    transferred_data = data[["QUANTITYORDERED", "SALES", "PRICEEACH", "STATUS", "PRODUCTLINE", "COUNTRY", "DEALSIZE", "QTR_ID"]]
     data_values = transferred_data.to_dict('records')
     data_dimension = transferred_data.columns.values.tolist()
     transferred_data = {'dimensions': data_dimension, 'data_values': data_values}

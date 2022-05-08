@@ -2,12 +2,14 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
 //    var variable_count = d3.rollups(data.data, v => d3.sum(v, d => d.SALES), d => d[variable])
 //                    .sort(([, a], [, b]) => d3.descending(a, b))
 
+    d3.select("#top-5").select("svg").remove();
+
     var data = transferred_data.data;
 
     var margin = {top: 0, right: 30, bottom: 30, left: 50};
 //        width = 650 - margin.left - margin.right,
 //        height = 350 - margin.top - margin.bottom;
-    var width = window.innerWidth * .2;
+    var width = window.innerWidth * .25;
     var height = window.innerHeight * .45;
 
 
@@ -45,7 +47,19 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
         .attr("height", y.bandwidth)
         .attr("fill", "#66ccff")
         .on("click", function(d, e) {
-
+            $.ajax({
+                url: "/stackedBarchart",
+                type: 'POST',
+                data: {
+                    customer_name: e.CUSTOMERNAME
+                },
+                success: function (f) {
+                    stackedBarchart(JSON.parse(f));
+                },
+                error: function (f) {
+                    console.log(f);
+                }
+            });
         });
 
 //    svg_barchart.append("text")
