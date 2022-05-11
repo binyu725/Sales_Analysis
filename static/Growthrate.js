@@ -1,11 +1,11 @@
 function growthRate(data) {
     d3.select("#growthrate").select("svg").remove();
 
-    var margin = {top: 0, right: 0, bottom: 35, left: 30};
+    var margin = {top: 30, right: 10, bottom: 35, left: 40};
 //        width = 650 - margin.left - margin.right,
 //        height = 350 - margin.top - margin.bottom;
-    var width = window.innerWidth * .4;
-    var height = window.innerHeight * .45;
+    var width = window.innerWidth * .4 - margin.left - margin.right;
+    var height = window.innerHeight * .45 - margin.top - margin.bottom;
 
     var svg = d3.select("#growthrate")
                 .append("svg")
@@ -33,18 +33,45 @@ function growthRate(data) {
 
     svg.append("g")
         .call(d3.axisLeft(y))
-        .style("font", "14px times");
+        .style("font", "12px times");
 
     var data_arr = Object.entries(data);
+
+    var selectedDate = "";
+
     svg.selectAll()
         .data(data_arr)
         .join("rect")
+        .attr("class", d => "dates")
         .attr("x", d => x(d[0]))
-        .attr("y", d => y(Math.max(0, d[1])))
+        .attr("y", d => y(0))
         .attr("width", x.bandwidth)
-        .attr("height", d => Math.abs(y(0) - y(d[1])))
+        .attr("height", d => Math.abs(height - y(d3.min(Object.values(data)))))
         .attr("fill", "#66ccff")
+        .on("mouseover", function(e, d) {
+            if (selectedDate === "") {
+                d3.selectAll(".dates")
+                    .transition().duration(300)
+                    .style("opacity", a => a[0] == d[0] ? 1 : 0.3)
+                    .attr("stroke", a => a[0] == d[0] ? "gray" : "transparent");
+            }
+        })
+        .on("mouseleave", function(e, d) {
+            if (selectedDate === "") {
+                d3.selectAll(".dates")
+                    .transition().duration(300)
+                    .style("opacity", 1)
+                    .attr("stroke", "transparent");
+            }
+        })
         .on("click", function(d, e) {
 
         });
+
+    svg.selectAll("rect")
+        .transition()
+        .duration(500)
+        .attr("y", d => y(Math.max(0, d[1])))
+        .attr("height", d => Math.abs(y(0) - y(d[1])))
+        .delay((d, i) => i*15);
 }

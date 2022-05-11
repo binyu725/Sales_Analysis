@@ -30,14 +30,11 @@ function read_data(url) {
 
 function dashboard() {
     read_data('/geomap')
-//    read_data('/pca')
     read_data('/barchart');
     read_data('/stackedBarchart');
-//    read_data('/stackedAreaChart');
+    // read_data('/stackedAreaChart');
     read_data('/pcp');
     read_data('/growthRate');
 }
-
-var svg_geomap, svg_barchart, svg_time, svg_pca;
 
 dashboard();

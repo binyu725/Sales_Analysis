@@ -12,6 +12,7 @@ def process_data():
     data = pd.read_csv("sales_data.csv")
     data = data.drop(['POSTALCODE', 'STATE', 'ORDERNUMBER', 'PHONE', 'ADDRESSLINE1', 'ADDRESSLINE2', 'CONTACTLASTNAME', 'CONTACTFIRSTNAME'], axis=1)
     data['time_period'] = data['YEAR_ID'].map(str) + "q" + data['QTR_ID'].map(str)
+    data['COUNTRY'] = data['COUNTRY'].replace({'UK': 'England'}, regex=True)
     return data
 
 @app.route('/')
@@ -35,15 +36,15 @@ def barchart():
 
 @app.route('/geomap', methods=['GET', 'POST'])
 def geomap():
-    # transferred_data = data.copy()
-    # if request.method == 'POST':
-    #     if "country_name" in request.form:
-    #         country = request.form['country_name']
-    #         transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
-    #     elif "customer_name" in request.form:
-    #         customer = request.form['customer_name']
-    #         transferred_data = transferred_data.loc[transferred_data['CUSTOMERNAME'] == customer]
-    transferred_data = {'data': data[["COUNTRY", "SALES"]].groupby(by=["COUNTRY"]).sum().to_dict('index')}
+    transferred_data = data.copy()
+    if request.method == 'POST':
+        if "time_period" in request.form:
+            time_period = request.form['time_period']
+            transferred_data = transferred_data.loc[transferred_data['time_period'] == time_period]
+        elif "customer_name" in request.form:
+            customer = request.form['customer_name']
+            transferred_data = transferred_data.loc[transferred_data['CUSTOMERNAME'] == customer]
+    transferred_data = {'data': transferred_data[["COUNTRY", "SALES"]].groupby(by=["COUNTRY"]).sum().to_dict('index')}
     return json.dumps(transferred_data)
 
 @app.route('/stackedBarchart', methods=['GET', 'POST'])

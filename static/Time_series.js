@@ -1,13 +1,13 @@
 function stackedBarchart(data) {
     d3.select("#timeseries").select("svg").remove();
 
-    var margin = {top: 10, right: 0, bottom: 20, left: 50};
+    var margin = {top: 20, right: 10, bottom: 30, left: 60};
 //        width = 600 - margin.left - margin.right,
 //        height = 300 - margin.top - margin.bottom;
-    var width = window.innerWidth * .65;
-    var height = window.innerHeight * .45;
+    var width = window.innerWidth * .6 - margin.left - margin.right;
+    var height = window.innerHeight * .45 - margin.top - margin.bottom;
 
-    svg_time = d3.select("#timeseries")
+    var svg_time = d3.select("#timeseries")
                 .append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
@@ -55,6 +55,8 @@ function stackedBarchart(data) {
                         .keys(subgroups)
                         (data)
 
+    var selectedQuater = "";
+
     svg_time.append("g")
         .selectAll("g")
         .data(stackedData)
@@ -69,26 +71,65 @@ function stackedBarchart(data) {
         .attr("y", d => y(d[0]))//y(d[1]))
         .attr("height", d => height-y(0))//y(d[0]) - y(d[1]))
         .attr("width", x.bandwidth())
-        .attr("stroke", "gray")
+        .attr("stroke", "transparent")
         .on("mouseover", function(e, d) {
-            var subGroupName = d3.select(this.parentNode).datum().key;
+            //var subGroupName = d3.select(this.parentNode).datum().key;
             //d3.selectAll(".myRect").style("opacity", 0.2);
-            d3.selectAll(".time").style("opacity", 0.2);
-            d3.selectAll(".time" + d.data.time_period).style("opacity", 1);//subGroupName.split(" ")[0]).style("opacity", 1);
+            if (selectedQuater === "") {
+                d3.selectAll(".time")
+                    .transition().duration(300)
+                    .style("opacity", 0.3)
+                    .attr("stroke", "transparent");
+                d3.selectAll(".time" + d.data.time_period)
+                    .transition().duration(300)
+                    .style("opacity", 1)
+                    .attr("stroke", "gray");
+                //subGroupName.split(" ")[0]).style("opacity", 1);
+            }
         })
         .on("mouseleave", function(e, d) {
-            d3.selectAll(".time")//myRect")
-            .style("opacity", 1);
+            if (selectedQuater === "") {
+                d3.selectAll(".time")//myRect")
+                    .transition().duration(300)
+                    .style("opacity", 1)
+                    .attr("stroke", "transparent");
+            }
         })
         .on("click", function(e, d) {
+            if (selectedQuater === d.data.time_period) {
+                selectedQuater = "";
+            } else {
+                selectedQuater = d.data.time_period;
+                d3.selectAll(".time")
+                    .transition().duration(300)
+                    .style("opacity", 0.3)
+                    .attr("stroke", "transparent");
+                d3.selectAll(".time" + d.data.time_period)
+                    .transition().duration(300)
+                    .style("opacity", 1)
+                    .attr("stroke", "gray");
+            }
             $.ajax({
                 url: "/barchart",
-                type: 'POST',
+                type: selectedQuater === "" ? "GET" : 'POST',
                 data: {
                     time_period: d.data.time_period
                 },
                 success: function (f) {
                     barchart(JSON.parse(f));
+                },
+                error: function (f) {
+                    console.log(f);
+                }
+            });
+            $.ajax({
+                url: "/geomap",
+                type: selectedQuater === "" ? "GET" : 'POST',
+                data: {
+                    time_period: d.data.time_period
+                },
+                success: function (f) {
+                    geomap(JSON.parse(f));
                 },
                 error: function (f) {
                     console.log(f);
@@ -102,6 +143,53 @@ function stackedBarchart(data) {
                 .attr("y", d => y(d[1]))
                 .attr("height", d => y(d[0]) - y(d[1]))
                 .delay((d, i) => i*15);
+
+        const highlight = function(event, d){
+            if (selectedQuater === "") {
+                d3.selectAll(".myRect")
+                    .transition().duration(300)
+                    .style("opacity", 0.2);
+                d3.selectAll("." + d.split(" ")[0])
+                    .transition().duration(300)
+                    .style("opacity", 1)
+                    .attr("stroke", "gray");
+            }
+        }
+
+        // And when it is not hovered anymore
+        const noHighlight = function(event, d){
+            if (selectedQuater === "") {
+                d3.selectAll(".myRect")
+                    .transition().duration(300)
+                    .style("opacity", 1)
+                    .attr("stroke", "transparent");
+            }
+        }
+
+        const size = 10;
+        svg_time.selectAll("myrect")
+            .data(subgroups)
+            .join("rect")
+            .attr("x", 950)
+            .attr("y", function(d,i){ return 10 + i*(size+5)})
+            .attr("width", size)
+            .attr("height", size)
+            .style("fill", function(d){ return color(d)})
+            .on("mouseover", highlight)
+            .on("mouseleave", noHighlight)
+
+        // Add one dot in the legend for each name.
+        svg_time.selectAll("mylabels")
+            .data(subgroups)
+            .join("text")
+            .attr("x", 950 + size*1.2)
+            .attr("y", function(d,i){ return 10 + i*(size+5) + (size/2)})
+            .style("fill", function(d){ return color(d)})
+            .text(function(d){ return d})
+            .attr("text-anchor", "left")
+            .style("alignment-baseline", "middle")
+            .on("mouseover", highlight)
+            .on("mouseleave", noHighlight)
 }
 
 function stackedAreaChart(data) {
@@ -212,7 +300,7 @@ function stackedAreaChart(data) {
 
     // A function that update the chart for given boundaries
     function updateChart(event,d) {
-        extent = event.selection
+        extent = event.selection;
 
         // If no selection, back to initial coordinate. Otherwise, update X axis domain
         if(!extent) {
@@ -244,11 +332,11 @@ function stackedAreaChart(data) {
     }
 
     // Add one dot in the legend for each name.
-    const size = 20
+    const size = 10;
     svg.selectAll("myrect")
         .data(keys)
         .join("rect")
-        .attr("x", 400)
+        .attr("x", 100)
         .attr("y", function(d,i){ return 10 + i*(size+5)}) // 100 is where the first dot appears. 25 is the distance between dots
         .attr("width", size)
         .attr("height", size)
@@ -260,7 +348,7 @@ function stackedAreaChart(data) {
     svg.selectAll("mylabels")
         .data(keys)
         .join("text")
-        .attr("x", 400 + size*1.2)
+        .attr("x", 100 + size*1.2)
         .attr("y", function(d,i){ return 10 + i*(size+5) + (size/2)}) // 100 is where the first dot appears. 25 is the distance between dots
         .style("fill", function(d){ return color(d)})
         .text(function(d){ return d})

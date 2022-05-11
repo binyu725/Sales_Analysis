@@ -2,16 +2,16 @@ function geomap(transferred_data) {
     d3.select("#map").select("svg").remove();
 
     var width = window.innerWidth * .35;
-    var height = window.innerHeight * .5;
+    var height = window.innerHeight * .45;
 
     var transferred_data = transferred_data.data;
 
-    svg_geomap = d3.select("#map")
+    var svg_geomap = d3.select("#map")
                     .append('svg')
                     .attr('width', width)
                     .attr('height', height);
 
-    var projection = d3.geoMercator().scale(120)
+    var projection = d3.geoMercator().scale(100)
         .translate([width / 2, height / 1.4]);
     var path = d3.geoPath(projection);
 
@@ -21,13 +21,21 @@ function geomap(transferred_data) {
 
     var colorScale = d3.scaleThreshold()
                         .domain([0, 50000, 100000, 200000, 400000, 800000, 1200000, 2000000])
-                        .range(d3.schemeReds[9]);
+                        .range(d3.quantize(d3.interpolateLab("#E9D5DA", "#363062"), 9));//d3.schemeReds[9]);
+
+    // var data_arr = Object.entries(transferred_data);
+    // var colorScale = d3.scaleLinear()
+    //     .domain(d3.extent(data_arr.map(d => d[1].SALES)))
+    //     .range(["#d66000", "#a9a9b4"])
+    //     .interpolate(d3.interpolateLab);
 
     svg_geomap.call(zoom);
 
     const tooltip = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
+
+    var selectedCountry = "";
 
     d3.json('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson').then(data => {
         var countries = data;
@@ -44,45 +52,57 @@ function geomap(transferred_data) {
                 })
                 .style("stroke", "transparent")
                 .attr("class", d => transferred_data.hasOwnProperty(d.properties.name) ? "country" : null)
-                .style("opacity", 0.8)
-                .on("mouseover", (d, i) => {
+                .style("opacity", 1)
+                .on("mouseover", (e, d) => {
                     var transferred_data_var = transferred_data
-                    const [x_point, y_point] = d3.pointer(d);
+                    //const [x_point, y_point] = d3.pointer(d);
+                    var x_point = e.x + 10;
+                    var y_point = e.y + 10;
 
-                    d3.selectAll(".country")
-                        .transition()
-                        .duration(200)
-                        //.style("opacity", a => a.properties.name == i.properties.name ? 0.8 : 0.5)
-                        .style("stroke", a => a.properties.name == i.properties.name ? "black" : "transparent")
-
-                    if (i.properties.name in transferred_data_var) {
+                    if (d.properties.name in transferred_data_var) {
+                        if (selectedCountry === "") {
+                            d3.selectAll(".country")
+                                .style("opacity", a => a.properties.name == d.properties.name ? 1 : 0.3)
+                                .style("stroke", a => a.properties.name == d.properties.name ? "black" : "transparent")
+                        }
                         tooltip.style("left", (x_point) + "px")
                             .style("top", (y_point) + "px")
                             .transition()
                             .duration(400)
                             .style("opacity", 1)
-                            .text(i.properties.name + ": " + transferred_data_var[i.properties.name].SALES);
+                            .text(d.properties.name + ": " + transferred_data_var[d.properties.name].SALES);
                     }
                 })
                 .on("mousemove", (d, i) => {
-                    const [x_point, y_point] = d3.pointer(d);
+                    //const [x_point, y_point] = d3.pointer(d);
+                    var x_point = d.x + 10;
+                    var y_point = d.y + 10;
                     tooltip.style("left", (x_point) + "px")
-                        .style("top", (y_point) + "px")
+                        .style("top", (y_point) + "px");
                 })
                 .on("mouseleave", d => {
-                    d3.selectAll(".country")
-                        .transition()
-                        .duration(200)
-                        .style("opacity", .8)
-                        .style("stroke", "transparent")
+                    if (selectedCountry === "") {
+                        d3.selectAll(".country")
+                            .style("opacity", 1)
+                            .style("stroke", "transparent")
+                    }
                     tooltip.transition().duration(300)
                         .style("opacity", 0);
                 })
                 .on("click", (e, d) => {
                     if (transferred_data.hasOwnProperty(d.properties.name)) {
+                        if (selectedCountry === d.properties.name) {
+                            selectedCountry = "";
+                        } else {
+                            selectedCountry = d.properties.name;
+                            d3.selectAll(".country")
+                                .style("opacity", a => a.properties.name == d.properties.name ? 1 : 0.3)
+                                .style("stroke", a => a.properties.name == d.properties.name ? "black" : "transparent")
+                        }
+
                         $.ajax({
                             url: "/stackedBarchart",
-                            type: 'POST',
+                            type: selectedCountry === "" ? "GET" : 'POST',
                             data: {
                                 country_name: d.properties.name
                             },
@@ -95,7 +115,7 @@ function geomap(transferred_data) {
                         });
                         $.ajax({
                             url: "/barchart",
-                            type: 'POST',
+                            type: selectedCountry === "" ? "GET" : 'POST',
                             data: {
                                 country_name: d.properties.name
                             },
@@ -108,7 +128,7 @@ function geomap(transferred_data) {
                         });
                         $.ajax({
                             url: "/growthRate",
-                            type: 'POST',
+                            type: selectedCountry === "" ? "GET" : 'POST',
                             data: {
                                 country_name: d.properties.name
                             },

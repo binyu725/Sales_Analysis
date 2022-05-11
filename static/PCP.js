@@ -1,9 +1,9 @@
 function pcp(data) {
-    var margin = {top: 20, right: 30, bottom: 0, left: 0};
+    var margin = {top: 20, right: 30, bottom: 10, left: 0};
 //        width = 1600 - margin.left - margin.right,
 //        height = 600 - margin.top - margin.bottom;
     var width = window.innerWidth * .35;
-    var height = window.innerHeight * .45;
+    var height = window.innerHeight * .4;
 
     var svg = d3.select("#pcp")
                 .append("svg")
@@ -150,24 +150,4 @@ function pcp(data) {
 //        .attr("text-anchor", "middle")
 //        .style("font-size", "40px")
 //        .text("Parallel Coordinates Plot")
-
-//    svg.selectAll("dots")
-//        .data(color)
-//        .enter()
-//        .append("circle")
-//        .attr("cx", width - 40)
-//        .attr("cy", function(d,i){ return i*25+40})
-//        .attr("r", 7)
-//        .style("fill", d => d)
-//
-//    svg.selectAll("labels")
-//        .data(color)
-//        .enter()
-//        .append("text")
-//        .attr("x", width - 20)
-//        .attr("y", function(d,i){ return i*25+40})
-//        .style("fill", d => d)
-//        .text((d, i) => "cluster " + (i + 1))
-//        .attr("text-anchor", "left")
-//        .style("alignment-baseline", "middle")
 }
