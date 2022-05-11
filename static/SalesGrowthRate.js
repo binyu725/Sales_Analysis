@@ -1,4 +1,4 @@
-function growthRate(data) {
+function salesGrowthRate(data) {
     d3.select("#growthrate").select("svg").remove();
 
     var margin = {top: 30, right: 20, bottom: 55, left: 55};
@@ -15,7 +15,7 @@ function growthRate(data) {
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     var x = d3.scaleBand()
-            .domain(Object.keys(data))
+            .domain(data.map(d => d.YEAR_MONTH))
             .range([0, width])
             .padding(0.2);
 
@@ -28,29 +28,28 @@ function growthRate(data) {
 
     var y = d3.scaleLinear()
             .range([height, 0])
-            .domain([d3.min(Object.values(data)), d3.max(Object.values(data))])
+            .domain([d3.min(data.map(d => d.MONTHLYGROWTH)), d3.max(data.map(d => d.MONTHLYGROWTH))])
             .nice();
 
     svg.append("g")
         .call(d3.axisLeft(y))
         .style("font", "12px times");
 
-    var data_arr = Object.entries(data);
 
     svg.selectAll()
-        .data(data_arr)
+        .data(data)
         .join("rect")
         .attr("class", d => "dates")
-        .attr("x", d => x(d[0]))
+        .attr("x", d => x(d.YEAR_MONTH))
         .attr("y", d => y(0))
         .attr("width", x.bandwidth)
-        .attr("height", d => Math.abs(height - y(d3.min(Object.values(data)))))
+        .attr("height", d => Math.abs(height - y(d3.min(data.map(d => d.MONTHLYGROWTH)))))
         .attr("fill", "#947EC3")
         .on("mouseover", function(e, d) {
             d3.selectAll(".dates")
                 .transition("mouseover3").duration(300)
-                .style("opacity", a => a[0] == d[0] ? 1 : 0.3)
-                .attr("stroke", a => a[0] == d[0] ? "gray" : "transparent");
+                .style("opacity", a => a.YEAR_MONTH == d.YEAR_MONTH ? 1 : 0.3)
+                .attr("stroke", a => a.YEAR_MONTH == d.YEAR_MONTH ? "gray" : "transparent");
         })
         .on("mouseleave", function(e, d) {
             d3.selectAll(".dates")
@@ -65,8 +64,8 @@ function growthRate(data) {
     svg.selectAll("rect")
         .transition("start3")
         .duration(500)
-        .attr("y", d => y(Math.max(0, d[1])))
-        .attr("height", d => Math.abs(y(0) - y(d[1])))
+        .attr("y", d => y(Math.max(0, d.MONTHLYGROWTH)))
+        .attr("height", d => Math.abs(y(0) - y(d.MONTHLYGROWTH)))
         .delay((d, i) => i*15);
 
     svg.append("text")
@@ -76,7 +75,7 @@ function growthRate(data) {
        .style("font-size", "20px")
        .style("font-family", "serif")
        .style("font-weight", "bold ")
-       .text("NEW CUSTOMERS GROWTH RATE")
+       .text("SALES GROWTH RATE")
 
    svg.append("text")
        .attr("transform", "translate(" + (width - 30) + ", " + (height + margin.bottom) + ")")

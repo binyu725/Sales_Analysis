@@ -6,9 +6,7 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
 
     var data = transferred_data.data;
 
-    var margin = {top: 50, right: 20, bottom: 50, left: 150};
-//        width = 650 - margin.left - margin.right,
-//        height = 350 - margin.top - margin.bottom;
+    var margin = {top: 50, right: 20, bottom: 55, left: 150};
     var width = window.innerWidth * .2 - margin.left - margin.right;
     var height = window.innerHeight * .45 - margin.top - margin.bottom;
 
@@ -41,8 +39,6 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
         .call(d3.axisLeft(y))
         .selectAll("text")
         .style("font", "10px times");
-
-    var selectedCustomer = "";
 
     svg_barchart.selectAll()
         .data(data)
@@ -80,38 +76,47 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
                     .attr("stroke", a => a.CUSTOMERNAME == d.CUSTOMERNAME ? "gray" : "transparent");
             }
 
-            var isbarchart = document.getElementById("Bar").checked;
+            if (selectedQuarter === "" && selectedProduct === "") {
+                var isbarchart = document.getElementById("Bar").checked;
+                postData(isbarchart ? "/stackedBarchart" : '/stackedAreaChart');
+            }
+            if (selectedCountry === "") {
+                postData("/geomap");
+            }
+            if (checkAllEmpty()) {
+                postData("/barchart");
+            }
 
-            $.ajax({
-                url: isbarchart ? "/stackedBarchart" : '/stackedAreaChart',
-                type: selectedCustomer === "" ? "GET" : 'POST',
-                data: {
-                    customer_name: d.CUSTOMERNAME
-                },
-                success: function (f) {
-                    if (isbarchart) {
-                        stackedBarchart(JSON.parse(f));
-                    } else {
-                        stackedAreaChart(JSON.parse(f));
-                    }
-                },
-                error: function (f) {
-                    console.log(f);
-                }
-            });
-            $.ajax({
-                url: "/geomap",
-                type: selectedCustomer === "" ? "GET" : 'POST',
-                data: {
-                    customer_name: d.CUSTOMERNAME
-                },
-                success: function (f) {
-                    geomap(JSON.parse(f));
-                },
-                error: function (f) {
-                    console.log(f);
-                }
-            });
+            // $.ajax({
+            //     url: isbarchart ? "/stackedBarchart" : '/stackedAreaChart',
+            //     type: selectedCustomer === "" ? "GET" : 'POST',
+            //     data: {
+            //         customer_name: d.CUSTOMERNAME
+            //     },
+            //     success: function (f) {
+            //         if (isbarchart) {
+            //             stackedBarchart(JSON.parse(f));
+            //         } else {
+            //             stackedAreaChart(JSON.parse(f));
+            //         }
+            //     },
+            //     error: function (f) {
+            //         console.log(f);
+            //     }
+            // });
+            // $.ajax({
+            //     url: "/geomap",
+            //     type: selectedCustomer === "" ? "GET" : 'POST',
+            //     data: {
+            //         customer_name: d.CUSTOMERNAME
+            //     },
+            //     success: function (f) {
+            //         geomap(JSON.parse(f));
+            //     },
+            //     error: function (f) {
+            //         console.log(f);
+            //     }
+            // });
         });
 
     svg_barchart.selectAll("rect")

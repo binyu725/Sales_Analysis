@@ -1,9 +1,5 @@
 from flask import Flask, render_template, request
 import pandas as pd
-import numpy as np
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 import json
 
 app = Flask(__name__)
@@ -26,12 +22,15 @@ def barchart():
         if "country_name" in request.form:
             country = request.form['country_name']
             transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
-        elif "time_period" in request.form:
+        if "time_period" in request.form:
             time_period = request.form['time_period']
             transferred_data = transferred_data.loc[transferred_data['time_period'] == time_period]
-        elif "product" in request.form:
+        if "product" in request.form:
             product = request.form['product']
             transferred_data = transferred_data.loc[transferred_data['PRODUCTLINE'] == product]
+        if "customer_name" in request.form:
+            customer = request.form['customer_name']
+            transferred_data = transferred_data.loc[transferred_data['CUSTOMERNAME'] == customer]
     transferred_data = transferred_data[["CUSTOMERNAME", "SALES"]].groupby(by=["CUSTOMERNAME"]).sum().sort_values(by='SALES', ascending=False).head(10)
     transferred_data.reset_index(inplace=True)
     transferred_data = {'data': transferred_data.to_dict('records')}
@@ -41,13 +40,16 @@ def barchart():
 def geomap():
     transferred_data = data.copy()
     if request.method == 'POST':
+        if "country_name" in request.form:
+            country = request.form['country_name']
+            transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
         if "time_period" in request.form:
             time_period = request.form['time_period']
             transferred_data = transferred_data.loc[transferred_data['time_period'] == time_period]
-        elif "customer_name" in request.form:
+        if "customer_name" in request.form:
             customer = request.form['customer_name']
             transferred_data = transferred_data.loc[transferred_data['CUSTOMERNAME'] == customer]
-        elif "product" in request.form:
+        if "product" in request.form:
             product = request.form['product']
             transferred_data = transferred_data.loc[transferred_data['PRODUCTLINE'] == product]
     transferred_data = {'data': transferred_data[["COUNTRY", "SALES"]].groupby(by=["COUNTRY"]).sum().to_dict('index')}
@@ -60,9 +62,15 @@ def stackedBarchart():
         if "country_name" in request.form:
             country = request.form['country_name']
             transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
-        elif "customer_name" in request.form:
+        if "customer_name" in request.form:
             customer = request.form['customer_name']
             transferred_data = transferred_data.loc[transferred_data['CUSTOMERNAME'] == customer]
+        if "time_period" in request.form:
+            time_period = request.form['time_period']
+            transferred_data = transferred_data.loc[transferred_data['time_period'] == time_period]
+        if "product" in request.form:
+            product = request.form['product']
+            transferred_data = transferred_data.loc[transferred_data['PRODUCTLINE'] == product]
     transferred_data = transferred_data[["time_period", "QUANTITYORDERED", "PRODUCTLINE"]]
     # transferred_data["MONTH_ID"] = transferred_data.MONTH_ID.map("{:02}".format)
     # transferred_data["time_period"] = transferred_data["YEAR_ID"].astype(str) + "-" + transferred_data[
@@ -83,7 +91,7 @@ def stackedAreaChart():
         if "country_name" in request.form:
             country = request.form['country_name']
             transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
-        elif "customer_name" in request.form:
+        if "customer_name" in request.form:
             customer = request.form['customer_name']
             transferred_data = transferred_data.loc[transferred_data['CUSTOMERNAME'] == customer]
     transferred_data = transferred_data[["SALES", "ORDERDATE", "PRODUCTLINE"]]
@@ -112,15 +120,30 @@ def pcp():
 def growthRate():
     transferred_data = data.copy()
     if request.method == 'POST':
-        country = request.form['country_name']
-        transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
+        if "country_name" in request.form:
+            country = request.form['country_name']
+            transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
     transferred_data['YEAR_MONTH'] = transferred_data['YEAR_ID'].map(str) + transferred_data['MONTH_ID'].map(str).map(lambda x: x.rjust(2, '0'))
+
     transferred_data = transferred_data.groupby('CUSTOMERNAME').YEAR_MONTH.min().reset_index()
     transferred_data.columns = ['CUSTOMERNAME', 'FirstPurchaseDate']
     transferred_data = transferred_data.groupby(['FirstPurchaseDate'])['CUSTOMERNAME'].nunique().pct_change()
     transferred_data = transferred_data.fillna(0)
-    transferred_data["200301"] = 1
     return json.dumps(transferred_data.to_dict())
+
+@app.route('/salesGrowthRate', methods=['GET', 'POST'])
+def salesGrowthRate():
+    transferred_data = data.copy()
+    if request.method == 'POST':
+        if "country_name" in request.form:
+            country = request.form['country_name']
+            transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
+    transferred_data['YEAR_MONTH'] = transferred_data['YEAR_ID'].map(str) + transferred_data['MONTH_ID'].map(str).map(lambda x: x.rjust(2, '0'))
+    transferred_data = transferred_data.groupby('YEAR_MONTH')['SALES'].sum().reset_index()
+    transferred_data['MONTHLYGROWTH'] = transferred_data['SALES'].pct_change()
+    transferred_data = transferred_data.fillna(0)
+    transferred_data = transferred_data.drop(['SALES'], axis=1)
+    return json.dumps(transferred_data.to_dict('records'))
 
 
 if __name__ == '__main__':

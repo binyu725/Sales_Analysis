@@ -128,10 +128,40 @@
             background-color: #947EC3;
         }
 
-        label {
-            font-family:"Playfair Display", sans-serif;
-            font-weight: bold;
+
+        input[type="radio"] {
+            display: none;
         }
+        input:checked + label {
+            background: #6A67CE;
+            border-color: #6A67CE;
+            color: #fff;
+            transition: all 125ms ease-out;
+        }
+
+        label {
+            border: 1px solid rgba(0,0,0,0.2);
+            border-radius: 4px;
+            color: #444;
+            cursor: pointer;
+            font-size: 11px;
+            display: inline-block;
+            padding: 10px;
+            text-transform: uppercase;
+            transition: none;
+        }
+
+        input, label {
+            margin-left: 10px;
+        }
+
+        .toggle {
+            font-family: sans-serif;
+            margin-top: 10px;
+            margin-right: 50px;
+            float: right;
+        }
+
     </style>
 </head>
 <body>
@@ -147,14 +177,23 @@
     <div class="container">
         <div class="map" id="map"></div>
         <div class="timeseries" id="timeseries">
-            <input type="radio" id="Bar" name="display-method" value="Bar" onclick="select_bar_display()" checked>
-            <label for="Bar">Quantity Stacked Barchart</label>
-            <input type="radio" id="Area" name="display-method" value="Area" onclick="select_bar_display()">
-            <label for="Area">Net Sales Stacked Area chart</label>
+            <div class="toggle">
+                <input type="radio" id="Bar" name="display-method" value="Bar" onclick="select_bar_display()" checked>
+                <label for="Bar">Quantity Stacked Barchart</label>
+                <input type="radio" id="Area" name="display-method" value="Area" onclick="select_bar_display()">
+                <label for="Area">Net Sales Stacked Area chart</label>
+            </div>
         </div>
         <div class="pcp" id="pcp"></div>
         <div class="top-5" id="top-5"></div>
-        <div class="growthrate" id="growthrate"></div>
+        <div class="growthrate" id="growthrate">
+            <div class="toggle">
+                <input type="radio" id="customer" name="display" value="customer" onclick="select_growth_display()" checked>
+                <label for="customer">Customers</label>
+                <input type="radio" id="sales" name="display" value="sales" onclick="select_growth_display()">
+                <label for="sales">Sales</label>
+            </div>
+        </div>
     </div>
 
     <script src="static/index.js"></script>
@@ -163,5 +202,6 @@
     <script src="static/Growthrate.js"></script>
     <script src="static/Time_series.js"></script>
     <script src="static/PCP.js"></script>
+    <script src="static/SalesGrowthRate.js"></script>
 </body>
 </html>

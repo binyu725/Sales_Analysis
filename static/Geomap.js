@@ -35,8 +35,6 @@ function geomap(transferred_data) {
         .attr("class", "tooltip")
         .style("opacity", 0);
 
-    var selectedCountry = "";
-
     d3.json('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson').then(data => {
         var countries = data;
 
@@ -68,7 +66,7 @@ function geomap(transferred_data) {
                         }
                         tooltip.style("left", (x_point) + "px")
                             .style("top", (y_point) + "px")
-                            .transition()
+                            .transition("tip")
                             .duration(400)
                             .style("opacity", 1)
                             .text(d.properties.name + ": " + transferred_data_var[d.properties.name].SALES);
@@ -88,13 +86,17 @@ function geomap(transferred_data) {
                             .style("opacity", 1)
                             .style("stroke", "transparent")
                     }
-                    tooltip.transition().duration(300)
+                    tooltip.transition("tip").duration(300)
                         .style("opacity", 0);
                 })
                 .on("click", (e, d) => {
+                    tooltip.transition("tip").duration(300)
+                        .style("opacity", 0);
                     if (transferred_data.hasOwnProperty(d.properties.name)) {
                         if (selectedCountry === d.properties.name) {
                             selectedCountry = "";
+                            var iscustomer = document.getElementById("customer").checked;
+                            postData(iscustomer ? "/growthRate" : "/salesGrowthRate");
                         } else {
                             selectedCountry = d.properties.name;
                             d3.selectAll(".country")
@@ -103,51 +105,66 @@ function geomap(transferred_data) {
                                 .style("stroke", a => a.properties.name == d.properties.name ? "black" : "transparent")
                         }
 
-                        var isbarchart = document.getElementById("Bar").checked;
+                        if (selectedQuarter === "" && selectedProduct === "") {
+                            var isbarchart = document.getElementById("Bar").checked;
+                            postData(isbarchart ? "/stackedBarchart" : '/stackedAreaChart');
+                        }
 
-                        $.ajax({
-                            url: isbarchart ? "/stackedBarchart" : '/stackedAreaChart',
-                            type: selectedCountry === "" ? "GET" : 'POST',
-                            data: {
-                                country_name: d.properties.name
-                            },
-                            success: function (f) {
-                                if (isbarchart) {
-                                    stackedBarchart(JSON.parse(f));
-                                } else {
-                                    stackedAreaChart(JSON.parse(f));
-                                }
-                            },
-                            error: function (e) {
-                                console.log(e);
-                            }
-                        });
-                        $.ajax({
-                            url: "/barchart",
-                            type: selectedCountry === "" ? "GET" : 'POST',
-                            data: {
-                                country_name: d.properties.name
-                            },
-                            success: function (d) {
-                                barchart(JSON.parse(d));
-                            },
-                            error: function (d) {
-                                console.log(d);
-                            }
-                        });
-                        $.ajax({
-                            url: "/growthRate",
-                            type: selectedCountry === "" ? "GET" : 'POST',
-                            data: {
-                                country_name: d.properties.name
-                            },
-                            success: function (d) {
-                                growthRate(JSON.parse(d));
-                            },
-                            error: function (d) {
-                                console.log(d);
-                            }
-                        });
+                        if (selectedCustomer === "") {
+                            postData("/barchart");
+                        }
+
+                        if (selectedQuarter === "" && selectedProduct === "" && selectedCustomer === "") {
+                            var iscustomer = document.getElementById("customer").checked;
+                            postData(iscustomer ? "/growthRate" : "/salesGrowthRate");
+                        }
+
+                        if (checkAllEmpty()) {
+                            postData("/geomap");
+                        }
+                        // $.ajax({
+                        //     url: isbarchart ? "/stackedBarchart" : '/stackedAreaChart',
+                        //     type: selectedCountry === "" ? "GET" : 'POST',
+                        //     data: {
+                        //         country_name: d.properties.name
+                        //     },
+                        //     success: function (f) {
+                        //         if (isbarchart) {
+                        //             stackedBarchart(JSON.parse(f));
+                        //         } else {
+                        //             stackedAreaChart(JSON.parse(f));
+                        //         }
+                        //     },
+                        //     error: function (e) {
+                        //         console.log(e);
+                        //     }
+                        // });
+                        // $.ajax({
+                        //     url: "/barchart",
+                        //     type: selectedCountry === "" ? "GET" : 'POST',
+                        //     data: {
+                        //         country_name: d.properties.name
+                        //     },
+                        //     success: function (d) {
+                        //         barchart(JSON.parse(d));
+                        //     },
+                        //     error: function (d) {
+                        //         console.log(d);
+                        //     }
+                        // });
+                        // $.ajax({
+                        //     url: "/growthRate",
+                        //     type: selectedCountry === "" ? "GET" : 'POST',
+                        //     data: {
+                        //         country_name: d.properties.name
+                        //     },
+                        //     success: function (d) {
+                        //         growthRate(JSON.parse(d));
+                        //     },
+                        //     error: function (d) {
+                        //         console.log(d);
+                        //     }
+                        // });
                     }
                 });
 

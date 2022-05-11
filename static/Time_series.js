@@ -49,13 +49,11 @@ function stackedBarchart(data) {
 
     var color = d3.scaleOrdinal()
                 .domain(subgroups)
-                .range(d3.quantize(d3.interpolateLab("#a9a9b4", "#363062"), 7));//d3.schemeSet3);
+                .range(d3.schemeSet3);//d3.quantize(d3.interpolateLab("#878ECD", "#363062"), 7));
 
     var stackedData = d3.stack()
                         .keys(subgroups)
                         (data)
-
-    var selectedQuater = "";
 
     svg_time.append("g")
         .selectAll("g")
@@ -72,10 +70,11 @@ function stackedBarchart(data) {
         .attr("height", d => height-y(0))//y(d[0]) - y(d[1]))
         .attr("width", x.bandwidth())
         .attr("stroke", "transparent")
+        .style("opacity", 1)
         .on("mouseover", function(e, d) {
             //var subGroupName = d3.select(this.parentNode).datum().key;
             //d3.selectAll(".myRect").style("opacity", 0.2);
-            if (selectedQuater === "") {
+            if (selectedQuarter === "") {
                 d3.selectAll(".time")
                     .transition("mouseover").duration(300)
                     .style("opacity", 0.3)
@@ -88,7 +87,7 @@ function stackedBarchart(data) {
             }
         })
         .on("mouseleave", function(e, d) {
-            if (selectedQuater === "") {
+            if (selectedQuarter === "") {
                 d3.selectAll(".time")//myRect")
                     .transition("mouseleave").duration(300)
                     .style("opacity", 1)
@@ -96,10 +95,10 @@ function stackedBarchart(data) {
             }
         })
         .on("click", function(e, d) {
-            if (selectedQuater === d.data.time_period) {
-                selectedQuater = "";
+            if (selectedQuarter === d.data.time_period) {
+                selectedQuarter = "";
             } else {
-                selectedQuater = d.data.time_period;
+                selectedQuarter = d.data.time_period;
                 d3.selectAll(".time")
                     .transition("click").duration(300)
                     .style("opacity", 0.3)
@@ -109,32 +108,42 @@ function stackedBarchart(data) {
                     .style("opacity", 1)
                     .attr("stroke", "gray");
             }
-            $.ajax({
-                url: "/barchart",
-                type: selectedQuater === "" ? "GET" : 'POST',
-                data: {
-                    time_period: d.data.time_period
-                },
-                success: function (f) {
-                    barchart(JSON.parse(f));
-                },
-                error: function (f) {
-                    console.log(f);
-                }
-            });
-            $.ajax({
-                url: "/geomap",
-                type: selectedQuater === "" ? "GET" : 'POST',
-                data: {
-                    time_period: d.data.time_period
-                },
-                success: function (f) {
-                    geomap(JSON.parse(f));
-                },
-                error: function (f) {
-                    console.log(f);
-                }
-            });
+            if (selectedCountry === "") {
+                postData("/geomap");
+            }
+            if (selectedCustomer === "") {
+                postData("/barchart");
+            }
+            if (checkAllEmpty()) {
+                postData("/stackedBarchart");
+            }
+
+            // $.ajax({
+            //     url: "/barchart",
+            //     type: selectedQuarter === "" ? "GET" : 'POST',
+            //     data: {
+            //         time_period: d.data.time_period
+            //     },
+            //     success: function (f) {
+            //         barchart(JSON.parse(f));
+            //     },
+            //     error: function (f) {
+            //         console.log(f);
+            //     }
+            // });
+            // $.ajax({
+            //     url: "/geomap",
+            //     type: selectedQuarter === "" ? "GET" : 'POST',
+            //     data: {
+            //         time_period: d.data.time_period
+            //     },
+            //     success: function (f) {
+            //         geomap(JSON.parse(f));
+            //     },
+            //     error: function (f) {
+            //         console.log(f);
+            //     }
+            // });
         });
 
     svg_time.selectAll("rect")
@@ -166,7 +175,6 @@ function stackedBarchart(data) {
         }
     }
 
-    var selectedProduct = "";
     const size = 10;
     svg_time.selectAll("myrect")
         .data(subgroups)
@@ -191,32 +199,41 @@ function stackedBarchart(data) {
                     .style("opacity", 1)
                     .attr("stroke", "gray");
             }
-            $.ajax({
-                url: "/barchart",
-                type: selectedProduct === "" ? "GET" : 'POST',
-                data: {
-                    product: d
-                },
-                success: function (f) {
-                    barchart(JSON.parse(f));
-                },
-                error: function (f) {
-                    console.log(f);
-                }
-            });
-            $.ajax({
-                url: "/geomap",
-                type: selectedProduct === "" ? "GET" : 'POST',
-                data: {
-                    product: d
-                },
-                success: function (f) {
-                    geomap(JSON.parse(f));
-                },
-                error: function (f) {
-                    console.log(f);
-                }
-            });
+            if (selectedCountry === "") {
+                postData("/geomap");
+            }
+            if (selectedCustomer === "") {
+                postData("/barchart");
+            }
+            if (checkAllEmpty()) {
+                postData("/stackedBarchart");
+            }
+            // $.ajax({
+            //     url: "/barchart",
+            //     type: selectedProduct === "" ? "GET" : 'POST',
+            //     data: {
+            //         product: d
+            //     },
+            //     success: function (f) {
+            //         barchart(JSON.parse(f));
+            //     },
+            //     error: function (f) {
+            //         console.log(f);
+            //     }
+            // });
+            // $.ajax({
+            //     url: "/geomap",
+            //     type: selectedProduct === "" ? "GET" : 'POST',
+            //     data: {
+            //         product: d
+            //     },
+            //     success: function (f) {
+            //         geomap(JSON.parse(f));
+            //     },
+            //     error: function (f) {
+            //         console.log(f);
+            //     }
+            // });
         });
 
     // Add one dot in the legend for each name.
@@ -244,56 +261,64 @@ function stackedBarchart(data) {
                     .style("opacity", 1)
                     .attr("stroke", "gray");
             }
-            $.ajax({
-                url: "/barchart",
-                type: selectedProduct === "" ? "GET" : 'POST',
-                data: {
-                    product: d
-                },
-                success: function (f) {
-                    barchart(JSON.parse(f));
-                },
-                error: function (f) {
-                    console.log(f);
-                }
-            });
-            $.ajax({
-                url: "/geomap",
-                type: selectedProduct === "" ? "GET" : 'POST',
-                data: {
-                    product: d
-                },
-                success: function (f) {
-                    geomap(JSON.parse(f));
-                },
-                error: function (f) {
-                    console.log(f);
-                }
-            });
+            if (selectedCountry === "") {
+                postData("/geomap");
+            }
+            if (selectedCustomer === "") {
+                postData("/barchart");
+            }
+            if (checkAllEmpty()) {
+                postData("/stackedBarchart");
+            }
+            // $.ajax({
+            //     url: "/barchart",
+            //     type: selectedProduct === "" ? "GET" : 'POST',
+            //     data: {
+            //         product: d
+            //     },
+            //     success: function (f) {
+            //         barchart(JSON.parse(f));
+            //     },
+            //     error: function (f) {
+            //         console.log(f);
+            //     }
+            // });
+            // $.ajax({
+            //     url: "/geomap",
+            //     type: selectedProduct === "" ? "GET" : 'POST',
+            //     data: {
+            //         product: d
+            //     },
+            //     success: function (f) {
+            //         geomap(JSON.parse(f));
+            //     },
+            //     error: function (f) {
+            //         console.log(f);
+            //     }
+            // });
         });
 
-   svg_time.append("text")
-       .attr("x", (width) / 2)
-       .attr("y", -10)
-       .attr("text-anchor", "middle")
-       .style("font-size", "25px")
-       .style("font-family", "serif")
-       .style("font-weight", "bold ")
-       .text("TIMESERIES")
+    svg_time.append("text")
+        .attr("x", (width) / 2)
+        .attr("y", -30)
+        .attr("text-anchor", "middle")
+        .style("font-size", "25px")
+        .style("font-family", "serif")
+        .style("font-weight", "bold ")
+        .text("TIMESERIES")
 
-   svg_time.append("text")
-       .attr("transform", "translate(" + (width-17) + ", " + (height + 37) + ")")
-       .style("text-anchor", "end")
-       .style("font", "18px times")
-       .text("Time(Quarter)")
+    svg_time.append("text")
+        .attr("transform", "translate(" + (width) + ", " + (height + 37) + ")")
+        .style("text-anchor", "end")
+        .style("font", "18px times")
+        .text("Time(Quarter)")
 
-   svg_time.append("text")
-       .attr("transform", "rotate(-90)")
-       .attr("x", -(height/2))
-       .attr("y", -margin.left+15)
-       .style("text-anchor", "middle")
-       .style("font", "18px times")
-       .text("Quantity")
+    svg_time.append("text")
+        .attr("x", 0)
+        .attr("y", -20)
+        .style("text-anchor", "middle")
+        .style("font", "18px times")
+        .text("Quantity")
 }
 
 function stackedAreaChart(data) {
@@ -324,7 +349,7 @@ function stackedAreaChart(data) {
     // color palette
     const color = d3.scaleOrdinal()
                     .domain(keys)
-                    .range(d3.quantize(d3.interpolateLab("#a9a9b4", "#363062"), 7));//d3.schemeSet3);
+                    .range(d3.schemeSet3);//d3.quantize(d3.interpolateLab("#a9a9b4", "#363062"), 7));
 
     //stack the data?
     const stackedData = d3.stack()
@@ -342,7 +367,7 @@ function stackedAreaChart(data) {
 
     svg.append("text")
        .attr("x", (width) / 2)
-       .attr("y", -10)
+       .attr("y", -30)
        .attr("text-anchor", "middle")
        .style("font-size", "25px")
        .style("font-family", "serif")
@@ -364,11 +389,18 @@ function stackedAreaChart(data) {
         .attr("y", -20 )
         .style("font", "18px times")
         .text("Cumulative Sales")
-        .attr("text-anchor", "start")
+        .attr("text-anchor", "middle")
+
+    var maxY = 0;
+    Object.keys(data[data.length-1]).forEach(key => {
+        if (key != "date") {
+            maxY += data[data.length-1][key];
+        }
+    })
 
     // Add Y axis
     const y = d3.scaleLinear()
-                .domain([0, 10000000])
+                .domain([0, maxY])
                 .range([ height, 0 ]);
     svg.append("g")
         .call(d3.axisLeft(y))
@@ -458,7 +490,7 @@ function stackedAreaChart(data) {
 
     // Add one dot in the legend for each name.
     const size = 10;
-    var selectedProduct = "";
+    //var selectedProduct = "";
 
     svg.selectAll("myrect")
         .data(keys)
@@ -482,32 +514,42 @@ function stackedAreaChart(data) {
                     .transition("click").duration(300)
                     .style("opacity", 1);
             }
-            $.ajax({
-                url: "/barchart",
-                type: selectedProduct === "" ? "GET" : 'POST',
-                data: {
-                    product: d
-                },
-                success: function (f) {
-                    barchart(JSON.parse(f));
-                },
-                error: function (f) {
-                    console.log(f);
-                }
-            });
-            $.ajax({
-                url: "/geomap",
-                type: selectedProduct === "" ? "GET" : 'POST',
-                data: {
-                    product: d
-                },
-                success: function (f) {
-                    geomap(JSON.parse(f));
-                },
-                error: function (f) {
-                    console.log(f);
-                }
-            });
+
+            if (selectedCountry === "") {
+                postData("/geomap");
+            }
+            if (selectedCustomer === "") {
+                postData("/barchart");
+            }
+            if (checkAllEmpty()) {
+                postData("/stackedAreaChart");
+            }
+            // $.ajax({
+            //     url: "/barchart",
+            //     type: selectedProduct === "" ? "GET" : 'POST',
+            //     data: {
+            //         product: d
+            //     },
+            //     success: function (f) {
+            //         barchart(JSON.parse(f));
+            //     },
+            //     error: function (f) {
+            //         console.log(f);
+            //     }
+            // });
+            // $.ajax({
+            //     url: "/geomap",
+            //     type: selectedProduct === "" ? "GET" : 'POST',
+            //     data: {
+            //         product: d
+            //     },
+            //     success: function (f) {
+            //         geomap(JSON.parse(f));
+            //     },
+            //     error: function (f) {
+            //         console.log(f);
+            //     }
+            // });
         });
 
     // Add one dot in the legend for each name.
@@ -534,31 +576,41 @@ function stackedAreaChart(data) {
                     .transition("click").duration(300)
                     .style("opacity", 1);
             }
-            $.ajax({
-                url: "/barchart",
-                type: selectedProduct === "" ? "GET" : 'POST',
-                data: {
-                    product: d
-                },
-                success: function (f) {
-                    barchart(JSON.parse(f));
-                },
-                error: function (f) {
-                    console.log(f);
-                }
-            });
-            $.ajax({
-                url: "/geomap",
-                type: selectedProduct === "" ? "GET" : 'POST',
-                data: {
-                    product: d
-                },
-                success: function (f) {
-                    geomap(JSON.parse(f));
-                },
-                error: function (f) {
-                    console.log(f);
-                }
-            });
+
+            if (selectedCountry === "") {
+                postData("/geomap");
+            }
+            if (selectedCustomer === "") {
+                postData("/barchart");
+            }
+            if (checkAllEmpty()) {
+                postData("/stackedAreaChart");
+            }
+            // $.ajax({
+            //     url: "/barchart",
+            //     type: selectedProduct === "" ? "GET" : 'POST',
+            //     data: {
+            //         product: d
+            //     },
+            //     success: function (f) {
+            //         barchart(JSON.parse(f));
+            //     },
+            //     error: function (f) {
+            //         console.log(f);
+            //     }
+            // });
+            // $.ajax({
+            //     url: "/geomap",
+            //     type: selectedProduct === "" ? "GET" : 'POST',
+            //     data: {
+            //         product: d
+            //     },
+            //     success: function (f) {
+            //         geomap(JSON.parse(f));
+            //     },
+            //     error: function (f) {
+            //         console.log(f);
+            //     }
+            // });
         });
 }
