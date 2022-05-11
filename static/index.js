@@ -1,6 +1,3 @@
-var color = ["#66ccff", "#69b3a2", "#404080", "yellow", "red"];
-var color2 = ["yellow", "red", "violet", "orange", "green", "cyan", "blue"];
-
 function read_data(url) {
     $.ajax({
         url: url,
@@ -10,8 +7,6 @@ function read_data(url) {
                 barchart(JSON.parse(d));
             } else if (url == '/stackedBarchart') {
                 stackedBarchart(JSON.parse(d));
-            } else if (url == '/pca') {
-                pca(JSON.parse(d));
             } else if (url == '/stackedAreaChart') {
                 stackedAreaChart(JSON.parse(d));
             } else if (url == '/pcp') {

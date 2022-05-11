@@ -47,7 +47,7 @@ function growthRate(data) {
         .attr("y", d => y(0))
         .attr("width", x.bandwidth)
         .attr("height", d => Math.abs(height - y(d3.min(Object.values(data)))))
-        .attr("fill", "#66ccff")
+        .attr("fill", "#947EC3")
         .on("mouseover", function(e, d) {
             if (selectedDate === "") {
                 d3.selectAll(".dates")

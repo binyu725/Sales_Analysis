@@ -49,7 +49,7 @@ function stackedBarchart(data) {
 
     var color = d3.scaleOrdinal()
                 .domain(subgroups)
-                .range(d3.schemeSet3);
+                .range(d3.quantize(d3.interpolateLab("#a9a9b4", "#363062"), 7));//d3.schemeSet3);
 
     var stackedData = d3.stack()
                         .keys(subgroups)
@@ -166,6 +166,7 @@ function stackedBarchart(data) {
             }
         }
 
+        var selectedProduct = "";
         const size = 10;
         svg_time.selectAll("myrect")
             .data(subgroups)
@@ -177,6 +178,46 @@ function stackedBarchart(data) {
             .style("fill", function(d){ return color(d)})
             .on("mouseover", highlight)
             .on("mouseleave", noHighlight)
+            .on("click", function(e, d) {
+                if (selectedProduct === d) {
+                    selectedProduct = "";
+                } else {
+                    selectedProduct = d;
+                    d3.selectAll(".myRect")
+                        .transition().duration(300)
+                        .style("opacity", 0.2);
+                    d3.selectAll("." + d.split(" ")[0])
+                        .transition().duration(300)
+                        .style("opacity", 1)
+                        .attr("stroke", "gray");
+                }
+                $.ajax({
+                    url: "/barchart",
+                    type: selectedProduct === "" ? "GET" : 'POST',
+                    data: {
+                        product: d
+                    },
+                    success: function (f) {
+                        barchart(JSON.parse(f));
+                    },
+                    error: function (f) {
+                        console.log(f);
+                    }
+                });
+                $.ajax({
+                    url: "/geomap",
+                    type: selectedProduct === "" ? "GET" : 'POST',
+                    data: {
+                        product: d
+                    },
+                    success: function (f) {
+                        geomap(JSON.parse(f));
+                    },
+                    error: function (f) {
+                        console.log(f);
+                    }
+                });
+            });
 
         // Add one dot in the legend for each name.
         svg_time.selectAll("mylabels")

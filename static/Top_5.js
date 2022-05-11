@@ -52,7 +52,7 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
         .attr("y", d => y(d.CUSTOMERNAME))
         .attr("width", d => x(0))//d => x(d.SALES))
         .attr("height", y.bandwidth)
-        .attr("fill", "#66ccff")
+        .attr("fill", "#947EC3")
         .on("mouseover", function(e, d) {
             if (selectedCustomer === "") {
                 d3.selectAll(".customers")

@@ -29,6 +29,9 @@ def barchart():
         elif "time_period" in request.form:
             time_period = request.form['time_period']
             transferred_data = transferred_data.loc[transferred_data['time_period'] == time_period]
+        elif "product" in request.form:
+            product = request.form['product']
+            transferred_data = transferred_data.loc[transferred_data['PRODUCTLINE'] == product]
     transferred_data = transferred_data[["CUSTOMERNAME", "SALES"]].groupby(by=["CUSTOMERNAME"]).sum().sort_values(by='SALES', ascending=False).head(10)
     transferred_data.reset_index(inplace=True)
     transferred_data = {'data': transferred_data.to_dict('records')}
@@ -44,6 +47,9 @@ def geomap():
         elif "customer_name" in request.form:
             customer = request.form['customer_name']
             transferred_data = transferred_data.loc[transferred_data['CUSTOMERNAME'] == customer]
+        elif "product" in request.form:
+            product = request.form['product']
+            transferred_data = transferred_data.loc[transferred_data['PRODUCTLINE'] == product]
     transferred_data = {'data': transferred_data[["COUNTRY", "SALES"]].groupby(by=["COUNTRY"]).sum().to_dict('index')}
     return json.dumps(transferred_data)
 
