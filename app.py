@@ -76,9 +76,17 @@ def stackedBarchart():
     transferred_data.reset_index(inplace=True)
     return json.dumps(transferred_data.to_dict('records'))
 
-@app.route('/stackedAreaChart')
+@app.route('/stackedAreaChart', methods=['GET', 'POST'])
 def stackedAreaChart():
-    transferred_data = data[["SALES", "ORDERDATE", "PRODUCTLINE"]]
+    transferred_data = data.copy()
+    if request.method == 'POST':
+        if "country_name" in request.form:
+            country = request.form['country_name']
+            transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
+        elif "customer_name" in request.form:
+            customer = request.form['customer_name']
+            transferred_data = transferred_data.loc[transferred_data['CUSTOMERNAME'] == customer]
+    transferred_data = transferred_data[["SALES", "ORDERDATE", "PRODUCTLINE"]]
     transferred_data["ORDERDATE"] = transferred_data["ORDERDATE"].str[:-5]
     transferred_data = transferred_data.groupby(["ORDERDATE", "PRODUCTLINE"]).sum()
     transferred_data.index.name = 'timeline'

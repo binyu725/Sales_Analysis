@@ -38,7 +38,6 @@ function select_bar_display() {
     } else {
         read_data('/stackedAreaChart');
     }
-
 }
 
 dashboard();

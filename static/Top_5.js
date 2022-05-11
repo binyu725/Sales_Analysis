@@ -80,14 +80,20 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
                     .attr("stroke", a => a.CUSTOMERNAME == d.CUSTOMERNAME ? "gray" : "transparent");
             }
 
+            var isbarchart = document.getElementById("Bar").checked;
+
             $.ajax({
-                url: "/stackedBarchart",
+                url: isbarchart ? "/stackedBarchart" : '/stackedAreaChart',
                 type: selectedCustomer === "" ? "GET" : 'POST',
                 data: {
                     customer_name: d.CUSTOMERNAME
                 },
                 success: function (f) {
-                    stackedBarchart(JSON.parse(f));
+                    if (isbarchart) {
+                        stackedBarchart(JSON.parse(f));
+                    } else {
+                        stackedAreaChart(JSON.parse(f));
+                    }
                 },
                 error: function (f) {
                     console.log(f);
@@ -135,5 +141,5 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
        .attr("y", -margin.left+20)
        .style("text-anchor", "middle")
        .style("font", "18px times")
-       .text("Customer name")
+       .text("Customer Name")
 }

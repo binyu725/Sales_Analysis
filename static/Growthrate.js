@@ -88,7 +88,7 @@ function growthRate(data) {
        .attr("transform", "translate(" + (width) + ", " + (height + margin.bottom) + ")")
        .style("text-anchor", "middle")
        .style("font", "18px times")
-       .text("Dates")
+       .text("Time(Month)")
 
    svg.append("text")
        .attr("transform", "rotate(-90)")

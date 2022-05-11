@@ -103,17 +103,23 @@ function geomap(transferred_data) {
                                 .style("stroke", a => a.properties.name == d.properties.name ? "black" : "transparent")
                         }
 
+                        var isbarchart = document.getElementById("Bar").checked;
+
                         $.ajax({
-                            url: "/stackedBarchart",
+                            url: isbarchart ? "/stackedBarchart" : '/stackedAreaChart',
                             type: selectedCountry === "" ? "GET" : 'POST',
                             data: {
                                 country_name: d.properties.name
                             },
-                            success: function (d) {
-                                stackedBarchart(JSON.parse(d));
+                            success: function (f) {
+                                if (isbarchart) {
+                                    stackedBarchart(JSON.parse(f));
+                                } else {
+                                    stackedAreaChart(JSON.parse(f));
+                                }
                             },
-                            error: function (d) {
-                                console.log(d);
+                            error: function (e) {
+                                console.log(e);
                             }
                         });
                         $.ajax({

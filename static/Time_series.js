@@ -273,7 +273,7 @@ function stackedBarchart(data) {
         });
 
    svg_time.append("text")
-       .attr("x", (width + margin.left + margin.right) / 2)
+       .attr("x", (width) / 2)
        .attr("y", -10)
        .attr("text-anchor", "middle")
        .style("font-size", "25px")
@@ -283,9 +283,9 @@ function stackedBarchart(data) {
 
    svg_time.append("text")
        .attr("transform", "translate(" + (width-17) + ", " + (height + 37) + ")")
-       .style("text-anchor", "middle")
+       .style("text-anchor", "end")
        .style("font", "18px times")
-       .text("Quarter")
+       .text("Time(Quarter)")
 
    svg_time.append("text")
        .attr("transform", "rotate(-90)")
@@ -303,11 +303,11 @@ function stackedAreaChart(data) {
         d.date = d3.timeParse("%Y-%m-%d")(d.date);
     })
 
-    const margin = {top: 20, right: 10, bottom: 30, left: 70};
+    const margin = {top: 50, right: 10, bottom: 40, left: 70};
 //          width = 600 - margin.left - margin.right,
 //          height = 300 - margin.top - margin.bottom;
-    var width = window.innerWidth * .55;
-    var height = window.innerHeight * .36;
+    var width = window.innerWidth * .6 - margin.left - margin.right;
+    var height = window.innerHeight * .4 - margin.top - margin.bottom;
 
     // append the svg object to the body of the page
     const svg = d3.select("#timeseries")
@@ -338,20 +338,32 @@ function stackedAreaChart(data) {
     const xAxis = svg.append("g")
                     .attr("transform", `translate(0, ${height})`)
                     .call(d3.axisBottom(x))
+                    .style("font", "14px times");
+
+    svg.append("text")
+       .attr("x", (width) / 2)
+       .attr("y", -10)
+       .attr("text-anchor", "middle")
+       .style("font-size", "25px")
+       .style("font-family", "serif")
+       .style("font-weight", "bold ")
+       .text("NET SALES");
 
     // Add X axis label:
     svg.append("text")
         .attr("text-anchor", "end")
         .attr("x", width)
-        .attr("y", height+40 )
-        .text("Time (year)");
+        .attr("y", height+30 )
+        .style("font", "18px times")
+        .text("Time");
 
     // Add Y axis label:
     svg.append("text")
         .attr("text-anchor", "end")
         .attr("x", 0)
         .attr("y", -20 )
-        .text("# of baby born")
+        .style("font", "18px times")
+        .text("Cumulative Sales")
         .attr("text-anchor", "start")
 
     // Add Y axis
@@ -360,6 +372,7 @@ function stackedAreaChart(data) {
                 .range([ height, 0 ]);
     svg.append("g")
         .call(d3.axisLeft(y))
+        .style("font", "14px times");
 
     // Add a clipPath: everything out of this area won't be drawn.
     const clip = svg.append("defs")
@@ -424,19 +437,29 @@ function stackedAreaChart(data) {
 
     // What to do when one group is hovered
     const highlight = function(event,d){
-        // reduce opacity of all groups
-        d3.selectAll(".myArea").style("opacity", .1)
-        // expect the one that is hovered
-        d3.selectAll("."+d.split(" ")[0]).style("opacity", 1)
+        if (selectedProduct === "") {
+            d3.selectAll(".myArea")
+                .transition("highlight").duration(300)
+                .style("opacity", .1)
+            d3.selectAll("." + d.split(" ")[0])
+                .transition("highlight").duration(300)
+                .style("opacity", 1)
+        }
     }
 
     // And when it is not hovered anymore
     const noHighlight = function(event,d){
-        d3.selectAll(".myArea").style("opacity", 1)
+        if (selectedProduct === "") {
+            d3.selectAll(".myArea")
+                .transition("nohighlight").duration(300)
+                .style("opacity", 1)
+        }
     }
 
     // Add one dot in the legend for each name.
     const size = 10;
+    var selectedProduct = "";
+
     svg.selectAll("myrect")
         .data(keys)
         .join("rect")
@@ -447,6 +470,45 @@ function stackedAreaChart(data) {
         .style("fill", function(d){ return color(d)})
         .on("mouseover", highlight)
         .on("mouseleave", noHighlight)
+        .on("click", function(e, d) {
+            if (selectedProduct === d) {
+                selectedProduct = "";
+            } else {
+                selectedProduct = d;
+                d3.selectAll(".myArea")
+                    .transition("click").duration(300)
+                    .style("opacity", 0.1);
+                d3.selectAll("." + d.split(" ")[0])
+                    .transition("click").duration(300)
+                    .style("opacity", 1);
+            }
+            $.ajax({
+                url: "/barchart",
+                type: selectedProduct === "" ? "GET" : 'POST',
+                data: {
+                    product: d
+                },
+                success: function (f) {
+                    barchart(JSON.parse(f));
+                },
+                error: function (f) {
+                    console.log(f);
+                }
+            });
+            $.ajax({
+                url: "/geomap",
+                type: selectedProduct === "" ? "GET" : 'POST',
+                data: {
+                    product: d
+                },
+                success: function (f) {
+                    geomap(JSON.parse(f));
+                },
+                error: function (f) {
+                    console.log(f);
+                }
+            });
+        });
 
     // Add one dot in the legend for each name.
     svg.selectAll("mylabels")
@@ -460,4 +522,43 @@ function stackedAreaChart(data) {
         .style("alignment-baseline", "middle")
         .on("mouseover", highlight)
         .on("mouseleave", noHighlight)
+        .on("click", function(e, d) {
+            if (selectedProduct === d) {
+                selectedProduct = "";
+            } else {
+                selectedProduct = d;
+                d3.selectAll(".myArea")
+                    .transition("click").duration(300)
+                    .style("opacity", 0.1);
+                d3.selectAll("." + d.split(" ")[0])
+                    .transition("click").duration(300)
+                    .style("opacity", 1);
+            }
+            $.ajax({
+                url: "/barchart",
+                type: selectedProduct === "" ? "GET" : 'POST',
+                data: {
+                    product: d
+                },
+                success: function (f) {
+                    barchart(JSON.parse(f));
+                },
+                error: function (f) {
+                    console.log(f);
+                }
+            });
+            $.ajax({
+                url: "/geomap",
+                type: selectedProduct === "" ? "GET" : 'POST',
+                data: {
+                    product: d
+                },
+                success: function (f) {
+                    geomap(JSON.parse(f));
+                },
+                error: function (f) {
+                    console.log(f);
+                }
+            });
+        });
 }
