@@ -32,7 +32,7 @@ function dashboard() {
 }
 
 function select_bar_display() {
-    var checked = document.getElementById("upright").checked;
+    var checked = document.getElementById("Bar").checked;
     if (checked) {
         read_data('/stackedBarchart');
     } else {

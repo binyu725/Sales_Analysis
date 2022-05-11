@@ -127,6 +127,11 @@
             height: 5px;
             background-color: #947EC3;
         }
+
+        label {
+            font-family:"Playfair Display", sans-serif;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -135,18 +140,17 @@
 <!--    </h1>-->
     <header>
         <h1>
-            Company Sales Analysis<span>Final Project</span>
+            Company Sales Analysis<span>CSE564 Final Project - Group 50</span>
         </h1>
     </header>
 
     <div class="container">
         <div class="map" id="map"></div>
         <div class="timeseries" id="timeseries">
-            <label>Choose the graph display method</label>
-            <input type="radio" id="upright" name="display-method" value="upright" onclick="select_bar_display()" checked>
-            <label for="upright">Stacked Bar Chart</label>
-            <input type="radio" id="sideways" name="display-method" value="sideways" onclick="select_bar_display()">
-            <label for="sideways">Stacked Area Chart</label>
+            <input type="radio" id="Bar" name="display-method" value="Bar" onclick="select_bar_display()" checked>
+            <label for="Bar">Quantity Stacked Barchart</label>
+            <input type="radio" id="Area" name="display-method" value="Area" onclick="select_bar_display()">
+            <label for="Area">Cumulative Sales Stacked Area chart</label>
         </div>
         <div class="pcp" id="pcp"></div>
         <div class="top-5" id="top-5"></div>

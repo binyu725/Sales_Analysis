@@ -1,11 +1,11 @@
 function stackedBarchart(data) {
     d3.select("#timeseries").select("svg").remove();
 
-    var margin = {top: 20, right: 10, bottom: 30, left: 60};
+    var margin = {top: 50, right: 10, bottom: 40, left: 70};
 //        width = 600 - margin.left - margin.right,
 //        height = 300 - margin.top - margin.bottom;
     var width = window.innerWidth * .6 - margin.left - margin.right;
-    var height = window.innerHeight * .45 - margin.top - margin.bottom;
+    var height = window.innerHeight * .4 - margin.top - margin.bottom;
 
     var svg_time = d3.select("#timeseries")
                 .append("svg")
@@ -137,15 +137,52 @@ function stackedBarchart(data) {
             });
         });
 
-        svg_time.selectAll("rect")
-                .transition()
-                .duration(500)
-                .attr("y", d => y(d[1]))
-                .attr("height", d => y(d[0]) - y(d[1]))
-                .delay((d, i) => i*15);
+    svg_time.selectAll("rect")
+            .transition()
+            .duration(500)
+            .attr("y", d => y(d[1]))
+            .attr("height", d => y(d[0]) - y(d[1]))
+            .delay((d, i) => i*15);
 
-        const highlight = function(event, d){
-            if (selectedQuater === "") {
+    const highlight = function(event, d){
+        if (selectedProduct === "") {
+            d3.selectAll(".myRect")
+                .transition().duration(300)
+                .style("opacity", 0.2);
+            d3.selectAll("." + d.split(" ")[0])
+                .transition().duration(300)
+                .style("opacity", 1)
+                .attr("stroke", "gray");
+        }
+    }
+
+    // And when it is not hovered anymore
+    const noHighlight = function(event, d){
+        if (selectedProduct === "") {
+            d3.selectAll(".myRect")
+                .transition().duration(300)
+                .style("opacity", 1)
+                .attr("stroke", "transparent");
+        }
+    }
+
+    var selectedProduct = "";
+    const size = 10;
+    svg_time.selectAll("myrect")
+        .data(subgroups)
+        .join("rect")
+        .attr("x", 950)
+        .attr("y", function(d,i){ return 10 + i*(size+5)})
+        .attr("width", size)
+        .attr("height", size)
+        .style("fill", function(d){ return color(d)})
+        .on("mouseover", highlight)
+        .on("mouseleave", noHighlight)
+        .on("click", function(e, d) {
+            if (selectedProduct === d) {
+                selectedProduct = "";
+            } else {
+                selectedProduct = d;
                 d3.selectAll(".myRect")
                     .transition().duration(300)
                     .style("opacity", 0.2);
@@ -154,98 +191,123 @@ function stackedBarchart(data) {
                     .style("opacity", 1)
                     .attr("stroke", "gray");
             }
-        }
+            $.ajax({
+                url: "/barchart",
+                type: selectedProduct === "" ? "GET" : 'POST',
+                data: {
+                    product: d
+                },
+                success: function (f) {
+                    barchart(JSON.parse(f));
+                },
+                error: function (f) {
+                    console.log(f);
+                }
+            });
+            $.ajax({
+                url: "/geomap",
+                type: selectedProduct === "" ? "GET" : 'POST',
+                data: {
+                    product: d
+                },
+                success: function (f) {
+                    geomap(JSON.parse(f));
+                },
+                error: function (f) {
+                    console.log(f);
+                }
+            });
+        });
 
-        // And when it is not hovered anymore
-        const noHighlight = function(event, d){
-            if (selectedQuater === "") {
+    // Add one dot in the legend for each name.
+    svg_time.selectAll("mylabels")
+        .data(subgroups)
+        .join("text")
+        .attr("x", 950 + size*1.2)
+        .attr("y", function(d,i){ return 10 + i*(size+5) + (size/2)})
+        .style("fill", function(d){ return color(d)})
+        .text(function(d){ return d})
+        .attr("text-anchor", "left")
+        .style("alignment-baseline", "middle")
+        .on("mouseover", highlight)
+        .on("mouseleave", noHighlight)
+        .on("click", function(e, d) {
+            if (selectedProduct === d) {
+                selectedProduct = "";
+            } else {
+                selectedProduct = d;
                 d3.selectAll(".myRect")
                     .transition().duration(300)
+                    .style("opacity", 0.2);
+                d3.selectAll("." + d.split(" ")[0])
+                    .transition().duration(300)
                     .style("opacity", 1)
-                    .attr("stroke", "transparent");
+                    .attr("stroke", "gray");
             }
-        }
-
-        var selectedProduct = "";
-        const size = 10;
-        svg_time.selectAll("myrect")
-            .data(subgroups)
-            .join("rect")
-            .attr("x", 950)
-            .attr("y", function(d,i){ return 10 + i*(size+5)})
-            .attr("width", size)
-            .attr("height", size)
-            .style("fill", function(d){ return color(d)})
-            .on("mouseover", highlight)
-            .on("mouseleave", noHighlight)
-            .on("click", function(e, d) {
-                if (selectedProduct === d) {
-                    selectedProduct = "";
-                } else {
-                    selectedProduct = d;
-                    d3.selectAll(".myRect")
-                        .transition().duration(300)
-                        .style("opacity", 0.2);
-                    d3.selectAll("." + d.split(" ")[0])
-                        .transition().duration(300)
-                        .style("opacity", 1)
-                        .attr("stroke", "gray");
+            $.ajax({
+                url: "/barchart",
+                type: selectedProduct === "" ? "GET" : 'POST',
+                data: {
+                    product: d
+                },
+                success: function (f) {
+                    barchart(JSON.parse(f));
+                },
+                error: function (f) {
+                    console.log(f);
                 }
-                $.ajax({
-                    url: "/barchart",
-                    type: selectedProduct === "" ? "GET" : 'POST',
-                    data: {
-                        product: d
-                    },
-                    success: function (f) {
-                        barchart(JSON.parse(f));
-                    },
-                    error: function (f) {
-                        console.log(f);
-                    }
-                });
-                $.ajax({
-                    url: "/geomap",
-                    type: selectedProduct === "" ? "GET" : 'POST',
-                    data: {
-                        product: d
-                    },
-                    success: function (f) {
-                        geomap(JSON.parse(f));
-                    },
-                    error: function (f) {
-                        console.log(f);
-                    }
-                });
             });
+            $.ajax({
+                url: "/geomap",
+                type: selectedProduct === "" ? "GET" : 'POST',
+                data: {
+                    product: d
+                },
+                success: function (f) {
+                    geomap(JSON.parse(f));
+                },
+                error: function (f) {
+                    console.log(f);
+                }
+            });
+        });
 
-        // Add one dot in the legend for each name.
-        svg_time.selectAll("mylabels")
-            .data(subgroups)
-            .join("text")
-            .attr("x", 950 + size*1.2)
-            .attr("y", function(d,i){ return 10 + i*(size+5) + (size/2)})
-            .style("fill", function(d){ return color(d)})
-            .text(function(d){ return d})
-            .attr("text-anchor", "left")
-            .style("alignment-baseline", "middle")
-            .on("mouseover", highlight)
-            .on("mouseleave", noHighlight)
+   svg_time.append("text")
+       .attr("x", (width + margin.left + margin.right) / 2)
+       .attr("y", -10)
+       .attr("text-anchor", "middle")
+       .style("font-size", "25px")
+       .style("font-family", "serif")
+       .style("font-weight", "bold ")
+       .text("TIMESERIES")
+
+   svg_time.append("text")
+       .attr("transform", "translate(" + (width-17) + ", " + (height + 37) + ")")
+       .style("text-anchor", "middle")
+       .style("font", "18px times")
+       .text("Quarter")
+
+   svg_time.append("text")
+       .attr("transform", "rotate(-90)")
+       .attr("x", -(height/2))
+       .attr("y", -margin.left+15)
+       .style("text-anchor", "middle")
+       .style("font", "18px times")
+       .text("Quantity")
 }
 
 function stackedAreaChart(data) {
     d3.select("#timeseries").select("svg").remove();
-//    console.log(data);
 
     data.forEach(function(d) {
         d.date = d3.timeParse("%Y-%m-%d")(d.date);
     })
 
-    const margin = {top: 10, right: 30, bottom: 20, left: 50};
+    const margin = {top: 20, right: 10, bottom: 30, left: 70};
 //          width = 600 - margin.left - margin.right,
 //          height = 300 - margin.top - margin.bottom;
-    var width = window.innerWidth * .58;
-    var height = window.innerHeight * .45;
+    var width = window.innerWidth * .55;
+    var height = window.innerHeight * .36;
 
     // append the svg object to the body of the page
     const svg = d3.select("#timeseries")
@@ -262,7 +324,7 @@ function stackedAreaChart(data) {
     // color palette
     const color = d3.scaleOrdinal()
                     .domain(keys)
-                    .range(d3.schemeSet3);
+                    .range(d3.quantize(d3.interpolateLab("#a9a9b4", "#363062"), 7));//d3.schemeSet3);
 
     //stack the data?
     const stackedData = d3.stack()

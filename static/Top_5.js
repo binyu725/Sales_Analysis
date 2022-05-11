@@ -6,7 +6,7 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
 
     var data = transferred_data.data;
 
-    var margin = {top: 20, right: 10, bottom: 35, left: 150};
+    var margin = {top: 50, right: 20, bottom: 50, left: 150};
 //        width = 650 - margin.left - margin.right,
 //        height = 350 - margin.top - margin.bottom;
     var width = window.innerWidth * .2 - margin.left - margin.right;
@@ -114,24 +114,26 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
         .attr("width", d => x(d.SALES))
         .delay((d, i) => i*15);
 
-//    svg_barchart.append("text")
-//        .attr("x", (width + margin.left + margin.right) / 2)
-//        .attr("y", -30)
-//        .attr("text-anchor", "middle")
-//        .style("font-size", "40px")
-//        .text("Barchart")
-//
-//    svg_barchart.append("text")
-//        .attr("transform", "translate(" + (width + margin.left + margin.right) / 2 + ", " + (height + margin.bottom) + ")")
-//        .style("text-anchor", "middle")
-//        .style("font", "20px times")
-//        .text("counts")
-//
-//    svg_barchart.append("text")
-//        .attr("transform", "rotate(-90)")
-//        .attr("x", -(height/2))
-//        .attr("y", -margin.left+10)
-//        .style("text-anchor", "middle")
-//        .style("font", "20px times")
-//        .text(variable)
+   svg_barchart.append("text")
+       .attr("x", (width/2-40))
+       .attr("y", -15)
+       .attr("text-anchor", "middle")
+       .style("font-size", "20px")
+       .style("font-family", "serif")
+       .style("font-weight", "bold ")
+       .text("TOP 10 CUSTOMER")
+
+   svg_barchart.append("text")
+       .attr("transform", "translate(" + (width) + ", " + (height + margin.bottom) + ")")
+       .style("text-anchor", "middle")
+       .style("font", "18px times")
+       .text("Sales")
+
+   svg_barchart.append("text")
+       .attr("transform", "rotate(-90)")
+       .attr("x", -(height/2))
+       .attr("y", -margin.left+20)
+       .style("text-anchor", "middle")
+       .style("font", "18px times")
+       .text("Customer name")
 }

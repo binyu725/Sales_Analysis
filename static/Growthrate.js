@@ -1,7 +1,7 @@
 function growthRate(data) {
     d3.select("#growthrate").select("svg").remove();
 
-    var margin = {top: 30, right: 10, bottom: 35, left: 40};
+    var margin = {top: 50, right: 20, bottom: 50, left: 55};
 //        width = 650 - margin.left - margin.right,
 //        height = 350 - margin.top - margin.bottom;
     var width = window.innerWidth * .4 - margin.left - margin.right;
@@ -74,4 +74,27 @@ function growthRate(data) {
         .attr("y", d => y(Math.max(0, d[1])))
         .attr("height", d => Math.abs(y(0) - y(d[1])))
         .delay((d, i) => i*15);
+
+    svg.append("text")
+       .attr("x", (width/2+20))
+       .attr("y", -15)
+       .attr("text-anchor", "middle")
+       .style("font-size", "20px")
+       .style("font-family", "serif")
+       .style("font-weight", "bold ")
+       .text("NEW CUSTOMERS GROWTH RATE")
+
+   svg.append("text")
+       .attr("transform", "translate(" + (width) + ", " + (height + margin.bottom) + ")")
+       .style("text-anchor", "middle")
+       .style("font", "18px times")
+       .text("Dates")
+
+   svg.append("text")
+       .attr("transform", "rotate(-90)")
+       .attr("x", -(height/2))
+       .attr("y", -margin.left+20)
+       .style("text-anchor", "middle")
+       .style("font", "18px times")
+       .text("Percentage Growth Rate")
 }
