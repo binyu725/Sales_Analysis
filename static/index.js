@@ -31,10 +31,19 @@ function read_data(url) {
 function dashboard() {
     read_data('/geomap')
     read_data('/barchart');
-    read_data('/stackedBarchart');
-    // read_data('/stackedAreaChart');
+    select_bar_display()
     read_data('/pcp');
     read_data('/growthRate');
+}
+
+function select_bar_display() {
+    var checked = document.getElementById("upright").checked;
+    if (checked) {
+        read_data('/stackedBarchart');
+    } else {
+        read_data('/stackedAreaChart');
+    }
+
 }
 
 dashboard();

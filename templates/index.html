@@ -141,7 +141,13 @@
 
     <div class="container">
         <div class="map" id="map"></div>
-        <div class="timeseries" id="timeseries"></div>
+        <div class="timeseries" id="timeseries">
+            <label>Choose the graph display method</label>
+            <input type="radio" id="upright" name="display-method" value="upright" onclick="select_bar_display()" checked>
+            <label for="upright">Stacked Bar Chart</label>
+            <input type="radio" id="sideways" name="display-method" value="sideways" onclick="select_bar_display()">
+            <label for="sideways">Stacked Area Chart</label>
+        </div>
         <div class="pcp" id="pcp"></div>
         <div class="top-5" id="top-5"></div>
         <div class="growthrate" id="growthrate"></div>

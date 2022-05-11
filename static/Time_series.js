@@ -193,6 +193,7 @@ function stackedBarchart(data) {
 }
 
 function stackedAreaChart(data) {
+    d3.select("#timeseries").select("svg").remove();
 //    console.log(data);
 
     data.forEach(function(d) {
