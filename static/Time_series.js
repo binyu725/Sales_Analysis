@@ -77,11 +77,11 @@ function stackedBarchart(data) {
             //d3.selectAll(".myRect").style("opacity", 0.2);
             if (selectedQuater === "") {
                 d3.selectAll(".time")
-                    .transition().duration(300)
+                    .transition("mouseover").duration(300)
                     .style("opacity", 0.3)
                     .attr("stroke", "transparent");
                 d3.selectAll(".time" + d.data.time_period)
-                    .transition().duration(300)
+                    .transition("mouseover").duration(300)
                     .style("opacity", 1)
                     .attr("stroke", "gray");
                 //subGroupName.split(" ")[0]).style("opacity", 1);
@@ -90,7 +90,7 @@ function stackedBarchart(data) {
         .on("mouseleave", function(e, d) {
             if (selectedQuater === "") {
                 d3.selectAll(".time")//myRect")
-                    .transition().duration(300)
+                    .transition("mouseleave").duration(300)
                     .style("opacity", 1)
                     .attr("stroke", "transparent");
             }
@@ -101,11 +101,11 @@ function stackedBarchart(data) {
             } else {
                 selectedQuater = d.data.time_period;
                 d3.selectAll(".time")
-                    .transition().duration(300)
+                    .transition("click").duration(300)
                     .style("opacity", 0.3)
                     .attr("stroke", "transparent");
                 d3.selectAll(".time" + d.data.time_period)
-                    .transition().duration(300)
+                    .transition("click").duration(300)
                     .style("opacity", 1)
                     .attr("stroke", "gray");
             }
@@ -138,19 +138,19 @@ function stackedBarchart(data) {
         });
 
     svg_time.selectAll("rect")
-            .transition()
+            .transition("start")
             .duration(500)
             .attr("y", d => y(d[1]))
             .attr("height", d => y(d[0]) - y(d[1]))
-            .delay((d, i) => i*15);
+            .delay((d, i) => i*5);
 
     const highlight = function(event, d){
         if (selectedProduct === "") {
             d3.selectAll(".myRect")
-                .transition().duration(300)
+                .transition("highlight").duration(300)
                 .style("opacity", 0.2);
             d3.selectAll("." + d.split(" ")[0])
-                .transition().duration(300)
+                .transition("highlight").duration(300)
                 .style("opacity", 1)
                 .attr("stroke", "gray");
         }
@@ -160,7 +160,7 @@ function stackedBarchart(data) {
     const noHighlight = function(event, d){
         if (selectedProduct === "") {
             d3.selectAll(".myRect")
-                .transition().duration(300)
+                .transition("nohighlight").duration(300)
                 .style("opacity", 1)
                 .attr("stroke", "transparent");
         }
@@ -184,10 +184,10 @@ function stackedBarchart(data) {
             } else {
                 selectedProduct = d;
                 d3.selectAll(".myRect")
-                    .transition().duration(300)
+                    .transition("click").duration(300)
                     .style("opacity", 0.2);
                 d3.selectAll("." + d.split(" ")[0])
-                    .transition().duration(300)
+                    .transition("click").duration(300)
                     .style("opacity", 1)
                     .attr("stroke", "gray");
             }
@@ -237,10 +237,10 @@ function stackedBarchart(data) {
             } else {
                 selectedProduct = d;
                 d3.selectAll(".myRect")
-                    .transition().duration(300)
+                    .transition("click").duration(300)
                     .style("opacity", 0.2);
                 d3.selectAll("." + d.split(" ")[0])
-                    .transition().duration(300)
+                    .transition("click").duration(300)
                     .style("opacity", 1)
                     .attr("stroke", "gray");
             }

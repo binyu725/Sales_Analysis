@@ -51,7 +51,7 @@ function growthRate(data) {
         .on("mouseover", function(e, d) {
             if (selectedDate === "") {
                 d3.selectAll(".dates")
-                    .transition().duration(300)
+                    .transition("mouseover3").duration(300)
                     .style("opacity", a => a[0] == d[0] ? 1 : 0.3)
                     .attr("stroke", a => a[0] == d[0] ? "gray" : "transparent");
             }
@@ -59,7 +59,7 @@ function growthRate(data) {
         .on("mouseleave", function(e, d) {
             if (selectedDate === "") {
                 d3.selectAll(".dates")
-                    .transition().duration(300)
+                    .transition("mouseleave3").duration(300)
                     .style("opacity", 1)
                     .attr("stroke", "transparent");
             }
@@ -69,7 +69,7 @@ function growthRate(data) {
         });
 
     svg.selectAll("rect")
-        .transition()
+        .transition("start3")
         .duration(500)
         .attr("y", d => y(Math.max(0, d[1])))
         .attr("height", d => Math.abs(y(0) - y(d[1])))

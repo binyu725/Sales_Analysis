@@ -62,7 +62,7 @@ function geomap(transferred_data) {
                     if (d.properties.name in transferred_data_var) {
                         if (selectedCountry === "") {
                             d3.selectAll(".country")
-                                .transition().duration(300)
+                                .transition("mouseover_map").duration(300)
                                 .style("opacity", a => a.properties.name == d.properties.name ? 1 : 0.3)
                                 .style("stroke", a => a.properties.name == d.properties.name ? "black" : "transparent")
                         }
@@ -84,7 +84,7 @@ function geomap(transferred_data) {
                 .on("mouseleave", d => {
                     if (selectedCountry === "") {
                         d3.selectAll(".country")
-                            .transition().duration(300)
+                            .transition("mouseleave_map").duration(300)
                             .style("opacity", 1)
                             .style("stroke", "transparent")
                     }
@@ -98,7 +98,7 @@ function geomap(transferred_data) {
                         } else {
                             selectedCountry = d.properties.name;
                             d3.selectAll(".country")
-                                .transition().duration(300)
+                                .transition("click_map").duration(300)
                                 .style("opacity", a => a.properties.name == d.properties.name ? 1 : 0.3)
                                 .style("stroke", a => a.properties.name == d.properties.name ? "black" : "transparent")
                         }

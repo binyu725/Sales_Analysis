@@ -56,7 +56,7 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
         .on("mouseover", function(e, d) {
             if (selectedCustomer === "") {
                 d3.selectAll(".customers")
-                    .transition().duration(300)
+                    .transition("mouseover2").duration(300)
                     .style("opacity", a => a.CUSTOMERNAME == d.CUSTOMERNAME ? 1 : 0.3)
                     .attr("stroke", a => a.CUSTOMERNAME == d.CUSTOMERNAME ? "gray" : "transparent");
             }
@@ -64,7 +64,7 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
         .on("mouseleave", function(e, d) {
             if (selectedCustomer === "") {
                 d3.selectAll(".customers")
-                    .transition().duration(300)
+                    .transition("mouseleave2").duration(300)
                     .style("opacity", 1)
                     .attr("stroke", "transparent");
             }
@@ -75,7 +75,7 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
             } else {
                 selectedCustomer = d.CUSTOMERNAME;
                 d3.selectAll(".customers")
-                    .transition().duration(300)
+                    .transition("click2").duration(300)
                     .style("opacity", a => a.CUSTOMERNAME == d.CUSTOMERNAME ? 1 : 0.3)
                     .attr("stroke", a => a.CUSTOMERNAME == d.CUSTOMERNAME ? "gray" : "transparent");
             }
@@ -109,7 +109,7 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
         });
 
     svg_barchart.selectAll("rect")
-        .transition()
+        .transition("start2")
         .duration(800)
         .attr("width", d => x(d.SALES))
         .delay((d, i) => i*15);
