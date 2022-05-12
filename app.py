@@ -116,7 +116,7 @@ def stackedAreaChart():
 
 @app.route('/pcp')
 def pcp():
-    transferred_data = data[["QUANTITYORDERED", "SALES", "PRICEEACH", "STATUS", "PRODUCTLINE", "COUNTRY", "DEALSIZE"]]
+    transferred_data = data[["DEALSIZE", "SALES", "QUANTITYORDERED", "PRICEEACH", "STATUS", "PRODUCTLINE", "COUNTRY"]]
     data_values = transferred_data.to_dict('records')
     data_dimension = transferred_data.columns.values.tolist()
     transferred_data = {'dimensions': data_dimension, 'data_values': data_values}

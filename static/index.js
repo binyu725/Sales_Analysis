@@ -77,7 +77,14 @@ function dashboard() {
 function select_bar_display() {
     var checked = document.getElementById("Bar").checked;
     if (checked) {
+        selectedQuarter = "";
         postData('/stackedBarchart');
+        if (selectedCountry === "") {
+            postData("/geomap");
+        }
+        if (selectedCustomer === "") {
+            postData("/barchart");
+        }
     } else {
         postData('/stackedAreaChart');
     }
