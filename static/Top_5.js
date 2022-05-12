@@ -34,7 +34,6 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
             .domain(data.map(d => d.CUSTOMERNAME))
             .padding(0.1);
 
-
     svg_barchart.append("g")
         .call(d3.axisLeft(y))
         .selectAll("text")
@@ -86,37 +85,6 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
             if (checkAllEmpty()) {
                 postData("/barchart");
             }
-
-            // $.ajax({
-            //     url: isbarchart ? "/stackedBarchart" : '/stackedAreaChart',
-            //     type: selectedCustomer === "" ? "GET" : 'POST',
-            //     data: {
-            //         customer_name: d.CUSTOMERNAME
-            //     },
-            //     success: function (f) {
-            //         if (isbarchart) {
-            //             stackedBarchart(JSON.parse(f));
-            //         } else {
-            //             stackedAreaChart(JSON.parse(f));
-            //         }
-            //     },
-            //     error: function (f) {
-            //         console.log(f);
-            //     }
-            // });
-            // $.ajax({
-            //     url: "/geomap",
-            //     type: selectedCustomer === "" ? "GET" : 'POST',
-            //     data: {
-            //         customer_name: d.CUSTOMERNAME
-            //     },
-            //     success: function (f) {
-            //         geomap(JSON.parse(f));
-            //     },
-            //     error: function (f) {
-            //         console.log(f);
-            //     }
-            // });
         });
 
     svg_barchart.selectAll("rect")
@@ -132,7 +100,7 @@ function barchart(transferred_data, variable="CUSTOMERNAME") {
        .style("font-size", "20px")
        .style("font-family", "serif")
        .style("font-weight", "bold ")
-       .text("TOP 10 CUSTOMER")
+       .text("TOP 10 CUSTOMERS")
 
    svg_barchart.append("text")
        .attr("transform", "translate(" + (width) + ", " + (height + margin.bottom) + ")")

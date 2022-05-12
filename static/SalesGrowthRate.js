@@ -15,7 +15,7 @@ function salesGrowthRate(data) {
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     var x = d3.scaleBand()
-            .domain(data.map(d => d.YEAR_MONTH))
+            .domain(data.map(d => d.time_period))
             .range([0, width])
             .padding(0.2);
 
@@ -40,7 +40,7 @@ function salesGrowthRate(data) {
         .data(data)
         .join("rect")
         .attr("class", d => "dates")
-        .attr("x", d => x(d.YEAR_MONTH))
+        .attr("x", d => x(d.time_period))
         .attr("y", d => y(0))
         .attr("width", x.bandwidth)
         .attr("height", d => Math.abs(height - y(d3.min(data.map(d => d.MONTHLYGROWTH)))))
@@ -48,8 +48,8 @@ function salesGrowthRate(data) {
         .on("mouseover", function(e, d) {
             d3.selectAll(".dates")
                 .transition("mouseover3").duration(300)
-                .style("opacity", a => a.YEAR_MONTH == d.YEAR_MONTH ? 1 : 0.3)
-                .attr("stroke", a => a.YEAR_MONTH == d.YEAR_MONTH ? "gray" : "transparent");
+                .style("opacity", a => a.time_period == d.time_period ? 1 : 0.3)
+                .attr("stroke", a => a.time_period == d.time_period ? "gray" : "transparent");
         })
         .on("mouseleave", function(e, d) {
             d3.selectAll(".dates")
@@ -89,5 +89,5 @@ function salesGrowthRate(data) {
        .attr("y", -margin.left+20)
        .style("text-anchor", "middle")
        .style("font", "18px times")
-       .text("Percentage Growth Rate")
+       .text("Sales Rate")
 }

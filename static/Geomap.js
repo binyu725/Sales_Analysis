@@ -21,7 +21,7 @@ function geomap(transferred_data) {
 
     var colorScale = d3.scaleThreshold()
                         .domain([0, 50000, 100000, 200000, 400000, 800000, 1200000, 2000000])
-                        .range(d3.quantize(d3.interpolateLab("#E9D5DA", "#363062"), 9));//d3.schemeReds[9]);
+                        .range(d3.quantize(d3.interpolateLab("#FFFFFF", "#363062"), 9));//d3.schemeReds[9]);
 
     // var data_arr = Object.entries(transferred_data);
     // var colorScale = d3.scaleLinear()
@@ -114,7 +114,7 @@ function geomap(transferred_data) {
                             postData("/barchart");
                         }
 
-                        if (selectedQuarter === "" && selectedProduct === "" && selectedCustomer === "") {
+                        if (selectedQuarter === "" && selectedCustomer === "") {
                             var iscustomer = document.getElementById("customer").checked;
                             postData(iscustomer ? "/growthRate" : "/salesGrowthRate");
                         }

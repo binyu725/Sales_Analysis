@@ -1,7 +1,5 @@
 function pcp(data) {
-    var margin = {top: 20, right: 30, bottom: 10, left: 0};
-//        width = 1600 - margin.left - margin.right,
-//        height = 600 - margin.top - margin.bottom;
+    var margin = {top: 20, right: 0, bottom: 10, left: 0};
     var width = window.innerWidth * .35;
     var height = window.innerHeight * .4;
 
@@ -15,9 +13,8 @@ function pcp(data) {
 
     var dimensions = data.dimensions;
     var data_values = data.data_values;
-    var label = data.label;
     var dragging = {}
-    var foreground, background;
+    var foreground;
 
     var y = {};
     for (i in dimensions) {
@@ -40,7 +37,7 @@ function pcp(data) {
 
     x = d3.scalePoint()
         .range([0, width])
-        .padding(1)
+        .padding(0.6)
         .domain(dimensions);
 
     function path(d) {
@@ -94,7 +91,7 @@ function pcp(data) {
         .each(function(d) { d3.select(this).call(d3.axisLeft().scale(y[d]));})
         .append("text")
         .style("text-anchor", "middle")
-        .style("font", "13px times")
+        .style("font", "11px times")
         .attr("y", -9)
         .text(d => d)
         .style("fill", "black");
@@ -143,11 +140,4 @@ function pcp(data) {
             });
         });
     }
-
-//    svg.append("text")
-//        .attr("x", width / 2)
-//        .attr("y", -40)
-//        .attr("text-anchor", "middle")
-//        .style("font-size", "40px")
-//        .text("Parallel Coordinates Plot")
 }

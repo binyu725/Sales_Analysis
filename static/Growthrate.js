@@ -90,5 +90,5 @@ function growthRate(data) {
        .attr("y", -margin.left+20)
        .style("text-anchor", "middle")
        .style("font", "18px times")
-       .text("Percentage Growth Rate")
+       .text("Growth Rate")
 }

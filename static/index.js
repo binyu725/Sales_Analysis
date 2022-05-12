@@ -86,9 +86,9 @@ function select_bar_display() {
 function select_growth_display() {
     var checked = document.getElementById("customer").checked;
     if (checked) {
-        read_data('/growthRate');
+        postData('/growthRate');
     } else {
-        read_data('/salesGrowthRate');
+        postData('/salesGrowthRate');
     }
 }
 

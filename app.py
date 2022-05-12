@@ -71,14 +71,14 @@ def stackedBarchart():
         if "product" in request.form:
             product = request.form['product']
             transferred_data = transferred_data.loc[transferred_data['PRODUCTLINE'] == product]
-    transferred_data = transferred_data[["time_period", "QUANTITYORDERED", "PRODUCTLINE"]]
+    transferred_data = transferred_data[["time_period", "SALES", "PRODUCTLINE"]]
     # transferred_data["MONTH_ID"] = transferred_data.MONTH_ID.map("{:02}".format)
     # transferred_data["time_period"] = transferred_data["YEAR_ID"].astype(str) + "-" + transferred_data[
     #     "MONTH_ID"].astype(str)
     transferred_data = transferred_data.groupby(["time_period", "PRODUCTLINE"]).sum()
     transferred_data.index.name = 'timeline'
     transferred_data.reset_index(inplace=True)
-    transferred_data = transferred_data.set_index(['time_period', 'PRODUCTLINE']).QUANTITYORDERED.unstack()
+    transferred_data = transferred_data.set_index(['time_period', 'PRODUCTLINE']).SALES.unstack()
     transferred_data = transferred_data.fillna(0)
     transferred_data.index.name = 'time_period'
     transferred_data.reset_index(inplace=True)
@@ -94,6 +94,12 @@ def stackedAreaChart():
         if "customer_name" in request.form:
             customer = request.form['customer_name']
             transferred_data = transferred_data.loc[transferred_data['CUSTOMERNAME'] == customer]
+        if "time_period" in request.form:
+            time_period = request.form['time_period']
+            transferred_data = transferred_data.loc[transferred_data['time_period'] == time_period]
+        if "product" in request.form:
+            product = request.form['product']
+            transferred_data = transferred_data.loc[transferred_data['PRODUCTLINE'] == product]
     transferred_data = transferred_data[["SALES", "ORDERDATE", "PRODUCTLINE"]]
     transferred_data["ORDERDATE"] = transferred_data["ORDERDATE"].str[:-5]
     transferred_data = transferred_data.groupby(["ORDERDATE", "PRODUCTLINE"]).sum()
@@ -110,7 +116,7 @@ def stackedAreaChart():
 
 @app.route('/pcp')
 def pcp():
-    transferred_data = data[["QUANTITYORDERED", "SALES", "PRICEEACH", "STATUS", "PRODUCTLINE", "COUNTRY", "DEALSIZE", "QTR_ID"]]
+    transferred_data = data[["QUANTITYORDERED", "SALES", "PRICEEACH", "STATUS", "PRODUCTLINE", "COUNTRY", "DEALSIZE"]]
     data_values = transferred_data.to_dict('records')
     data_dimension = transferred_data.columns.values.tolist()
     transferred_data = {'dimensions': data_dimension, 'data_values': data_values}
@@ -138,8 +144,11 @@ def salesGrowthRate():
         if "country_name" in request.form:
             country = request.form['country_name']
             transferred_data = transferred_data.loc[transferred_data['COUNTRY'] == country]
-    transferred_data['YEAR_MONTH'] = transferred_data['YEAR_ID'].map(str) + transferred_data['MONTH_ID'].map(str).map(lambda x: x.rjust(2, '0'))
-    transferred_data = transferred_data.groupby('YEAR_MONTH')['SALES'].sum().reset_index()
+        if "product" in request.form:
+            product = request.form['product']
+            transferred_data = transferred_data.loc[transferred_data['PRODUCTLINE'] == product]
+    # transferred_data['YEAR_MONTH'] = transferred_data['YEAR_ID'].map(str) + transferred_data['MONTH_ID'].map(str).map(lambda x: x.rjust(2, '0'))
+    transferred_data = transferred_data.groupby('time_period')['SALES'].sum().reset_index()
     transferred_data['MONTHLYGROWTH'] = transferred_data['SALES'].pct_change()
     transferred_data = transferred_data.fillna(0)
     transferred_data = transferred_data.drop(['SALES'], axis=1)
