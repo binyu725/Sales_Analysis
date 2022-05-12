@@ -2,8 +2,6 @@ function growthRate(data) {
     d3.select("#growthrate").select("svg").remove();
 
     var margin = {top: 30, right: 20, bottom: 55, left: 55};
-//        width = 650 - margin.left - margin.right,
-//        height = 350 - margin.top - margin.bottom;
     var width = window.innerWidth * .4 - margin.left - margin.right;
     var height = window.innerHeight * .4 - margin.top - margin.bottom;
 

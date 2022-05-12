@@ -147,8 +147,8 @@ def salesGrowthRate():
         if "product" in request.form:
             product = request.form['product']
             transferred_data = transferred_data.loc[transferred_data['PRODUCTLINE'] == product]
-    # transferred_data['YEAR_MONTH'] = transferred_data['YEAR_ID'].map(str) + transferred_data['MONTH_ID'].map(str).map(lambda x: x.rjust(2, '0'))
-    transferred_data = transferred_data.groupby('time_period')['SALES'].sum().reset_index()
+    transferred_data['YEAR_MONTH'] = transferred_data['YEAR_ID'].map(str) + transferred_data['MONTH_ID'].map(str).map(lambda x: x.rjust(2, '0'))
+    transferred_data = transferred_data.groupby('YEAR_MONTH')['SALES'].sum().reset_index()
     transferred_data['MONTHLYGROWTH'] = transferred_data['SALES'].pct_change()
     transferred_data = transferred_data.fillna(0)
     transferred_data = transferred_data.drop(['SALES'], axis=1)
