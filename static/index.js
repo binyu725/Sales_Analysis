@@ -71,7 +71,7 @@ function dashboard() {
     read_data('/barchart');
     select_bar_display()
     read_data('/pcp');
-    select_growth_display()
+    select_growth_display();
 }
 
 function select_bar_display() {

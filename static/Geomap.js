@@ -49,8 +49,8 @@ function geomap(transferred_data) {
                     return colorScale(total);
                 })
                 .style("stroke", "transparent")
-                .attr("class", d => transferred_data.hasOwnProperty(d.properties.name) ? "country" : null)
-                .style("opacity", 1)
+                .attr("class", d => transferred_data.hasOwnProperty(d.properties.name) ? "country" : "others")
+                .style("opacity", d => transferred_data.hasOwnProperty(d.properties.name) ? 1 : (selectedQuarter === "" ? 1 : 0))
                 .on("mouseover", (e, d) => {
                     var transferred_data_var = transferred_data
                     //const [x_point, y_point] = d3.pointer(d);
@@ -84,7 +84,7 @@ function geomap(transferred_data) {
                         d3.selectAll(".country")
                             .transition("mouseleave_map").duration(300)
                             .style("opacity", 1)
-                            .style("stroke", "transparent")
+                            .style("stroke", "transparent");
                     }
                     tooltip.transition("tip").duration(300)
                         .style("opacity", 0);
@@ -122,49 +122,6 @@ function geomap(transferred_data) {
                         if (checkAllEmpty()) {
                             postData("/geomap");
                         }
-                        // $.ajax({
-                        //     url: isbarchart ? "/stackedBarchart" : '/stackedAreaChart',
-                        //     type: selectedCountry === "" ? "GET" : 'POST',
-                        //     data: {
-                        //         country_name: d.properties.name
-                        //     },
-                        //     success: function (f) {
-                        //         if (isbarchart) {
-                        //             stackedBarchart(JSON.parse(f));
-                        //         } else {
-                        //             stackedAreaChart(JSON.parse(f));
-                        //         }
-                        //     },
-                        //     error: function (e) {
-                        //         console.log(e);
-                        //     }
-                        // });
-                        // $.ajax({
-                        //     url: "/barchart",
-                        //     type: selectedCountry === "" ? "GET" : 'POST',
-                        //     data: {
-                        //         country_name: d.properties.name
-                        //     },
-                        //     success: function (d) {
-                        //         barchart(JSON.parse(d));
-                        //     },
-                        //     error: function (d) {
-                        //         console.log(d);
-                        //     }
-                        // });
-                        // $.ajax({
-                        //     url: "/growthRate",
-                        //     type: selectedCountry === "" ? "GET" : 'POST',
-                        //     data: {
-                        //         country_name: d.properties.name
-                        //     },
-                        //     success: function (d) {
-                        //         growthRate(JSON.parse(d));
-                        //     },
-                        //     error: function (d) {
-                        //         console.log(d);
-                        //     }
-                        // });
                     }
                 });
 
